@@ -20,6 +20,12 @@ public class Item {
         this.subtotal = subtotal;
     }
 
+    public Item(String nomeProduto, int quantidade, BigDecimal precoUnitario) {
+        this.nomeProduto = nomeProduto;
+        this.quantidade = quantidade;
+        this.precoUnitario = precoUnitario;
+    }
+
     public String getNomeProduto() {
         return nomeProduto;
     }

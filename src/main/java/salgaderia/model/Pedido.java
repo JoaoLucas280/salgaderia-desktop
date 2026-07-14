@@ -19,11 +19,10 @@ public class Pedido {
     public Pedido() {
     }
 
-    public Pedido(Long id, String nomeCliente, String telefone, List<Item> itens,
+    public Pedido(Long id, String nomeCliente,List<Item> itens,
                   BigDecimal total, LocalDateTime dataHora) {
         this.id = id;
         this.nomeCliente = nomeCliente;
-        this.telefone = telefone;
         this.itens = itens;
         this.total = total;
         this.dataHora = dataHora;
