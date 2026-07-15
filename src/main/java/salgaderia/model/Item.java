@@ -9,15 +9,17 @@ public class Item {
     private int quantidade;
     private BigDecimal precoUnitario;
     private BigDecimal subtotal;
+    private int quantidadeMaxima;
 
     public Item() {
     }
 
-    public Item(String nomeProduto, int quantidade, BigDecimal precoUnitario, BigDecimal subtotal) {
+    public Item(String nomeProduto, int quantidade, BigDecimal precoUnitario, BigDecimal subtotal, int quantidadeMaxima) {
         this.nomeProduto = nomeProduto;
         this.quantidade = quantidade;
         this.precoUnitario = precoUnitario;
         this.subtotal = subtotal;
+        this.quantidadeMaxima = quantidadeMaxima;
     }
 
     public Item(String nomeProduto, int quantidade, BigDecimal precoUnitario) {
@@ -58,14 +60,22 @@ public class Item {
         this.subtotal = subtotal;
     }
 
+    public int getQuantidadeMaxima() {
+        return quantidadeMaxima;
+    }
+
+    public void setQuantidadeMaxima(int quantidadeMaxima) {
+        this.quantidadeMaxima = quantidadeMaxima;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Item item)) return false;
-        return getQuantidade() == item.getQuantidade() && Objects.equals(getNomeProduto(), item.getNomeProduto()) && Objects.equals(getPrecoUnitario(), item.getPrecoUnitario()) && Objects.equals(getSubtotal(), item.getSubtotal());
+        return getQuantidade() == item.getQuantidade() && getQuantidadeMaxima() == item.getQuantidadeMaxima() && Objects.equals(getNomeProduto(), item.getNomeProduto()) && Objects.equals(getPrecoUnitario(), item.getPrecoUnitario()) && Objects.equals(getSubtotal(), item.getSubtotal());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getNomeProduto(), getQuantidade(), getPrecoUnitario(), getSubtotal());
+        return Objects.hash(getNomeProduto(), getQuantidade(), getPrecoUnitario(), getSubtotal(), getQuantidadeMaxima());
     }
 }
