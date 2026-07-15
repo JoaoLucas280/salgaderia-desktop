@@ -7,19 +7,19 @@ import java.util.Objects;
 
 public class Pedido {
 
-    private Long id;
+    private int id;
     private String nomeCliente;
     private String telefone;
     private String endereco;
     private BigDecimal taxaEntrega;
-    private List<Item> itens;
+    private List<ItemPedido> itens;
     private BigDecimal total;
     private LocalDateTime dataHora;
 
     public Pedido() {
     }
 
-    public Pedido(Long id, String nomeCliente,List<Item> itens,
+    public Pedido(int id, String nomeCliente, List<ItemPedido> itens,
                   BigDecimal total, LocalDateTime dataHora) {
         this.id = id;
         this.nomeCliente = nomeCliente;
@@ -28,11 +28,11 @@ public class Pedido {
         this.dataHora = dataHora;
     }
 
-    public Long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId() {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -68,11 +68,11 @@ public class Pedido {
         this.taxaEntrega = taxaEntrega;
     }
 
-    public List<Item> getItens() {
+    public List<ItemPedido> getItens() {
         return itens;
     }
 
-    public void setItens(List<Item> itens) {
+    public void setItens(List<ItemPedido> itens) {
         this.itens = itens;
     }
 

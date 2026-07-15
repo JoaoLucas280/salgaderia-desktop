@@ -1,8 +1,6 @@
 package salgaderia.ui;
 
-import salgaderia.model.Item;
-import salgaderia.model.Pedido;
-import salgaderia.model.Produto;
+import salgaderia.model.*;
 import salgaderia.model.enums.tipoProduto;
 import salgaderia.service.PedidoService;
 
@@ -12,10 +10,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TelaPedido extends JFrame{
+public class TelaPedido extends JFrame {
 
     private final PedidoService service;
 
@@ -30,6 +29,10 @@ public class TelaPedido extends JFrame{
     private JComboBox<Produto> comboProdutos;
     private JSpinner spinnerQuantidade;
     private JButton botaoAdicionar;
+
+    // Combos
+    private JComboBox<Combo> comboCombos;
+    private JButton botaoMontarCombo;
 
     // Lista de itens
     private DefaultListModel<String> modelListaItens;
@@ -58,15 +61,12 @@ public class TelaPedido extends JFrame{
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
 
-        // Painel Superior - Dados do Cliente
         JPanel painelCliente = criarPainelCliente();
         add(painelCliente, BorderLayout.NORTH);
 
-        // Painel Central - Produtos
         JPanel painelProdutos = criarPainelProdutos();
         add(painelProdutos, BorderLayout.CENTER);
 
-        // Painel Inferior - Totais e Botões
         JPanel painelRodape = criarPainelRodape();
         add(painelRodape, BorderLayout.SOUTH);
     }
@@ -85,7 +85,7 @@ public class TelaPedido extends JFrame{
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Linha 1: Nome
+        // Nome
         gbc.gridx = 0;
         gbc.gridy = 0;
         painel.add(new JLabel("Nome:"), gbc);
@@ -96,7 +96,7 @@ public class TelaPedido extends JFrame{
         campoNome = new JTextField(20);
         painel.add(campoNome, gbc);
 
-        // Linha 2: Telefone
+        // Telefone
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 1;
@@ -104,14 +104,12 @@ public class TelaPedido extends JFrame{
 
         gbc.gridx = 1;
         gbc.gridy = 1;
-        gbc.gridwidth = 1;
         campoTelefone = new JTextField(15);
         painel.add(campoTelefone, gbc);
 
-        // Linha 3: Endereço
+        // Endereço
         gbc.gridx = 0;
         gbc.gridy = 2;
-        gbc.gridwidth = 1;
         painel.add(new JLabel("Endereço:"), gbc);
 
         gbc.gridx = 1;
@@ -120,7 +118,7 @@ public class TelaPedido extends JFrame{
         campoEndereco = new JTextField(20);
         painel.add(campoEndereco, gbc);
 
-        // Linha 4: Taxa de Entrega
+        // Taxa
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 1;
@@ -128,12 +126,10 @@ public class TelaPedido extends JFrame{
 
         gbc.gridx = 1;
         gbc.gridy = 3;
-        gbc.gridwidth = 1;
         campoTaxa = new JTextField(10);
         campoTaxa.setEnabled(false);
         painel.add(campoTaxa, gbc);
 
-        // Habilita taxa se endereço for preenchido
         campoEndereco.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) { habilitarTaxa(); }
@@ -156,9 +152,9 @@ public class TelaPedido extends JFrame{
                 new Font("Arial", Font.BOLD, 14)
         ));
 
-        // Painel de adição de produtos
         JPanel painelAdicao = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
+        // Produtos avulsos
         comboProdutos = new JComboBox<>();
         comboProdutos.setPreferredSize(new Dimension(200, 30));
         painelAdicao.add(new JLabel("Produto:"));
@@ -172,6 +168,19 @@ public class TelaPedido extends JFrame{
         botaoAdicionar = new JButton("➕ Adicionar");
         botaoAdicionar.addActionListener(e -> adicionarProduto());
         painelAdicao.add(botaoAdicionar);
+
+        // Separador
+        painelAdicao.add(new JLabel("  |  "));
+
+        // Combos
+        comboCombos = new JComboBox<>();
+        comboCombos.setPreferredSize(new Dimension(200, 30));
+        painelAdicao.add(new JLabel("Combo:"));
+        painelAdicao.add(comboCombos);
+
+        botaoMontarCombo = new JButton("🧩 Montar Combo");
+        botaoMontarCombo.addActionListener(e -> abrirMontagemCombo());
+        painelAdicao.add(botaoMontarCombo);
 
         painel.add(painelAdicao, BorderLayout.NORTH);
 
@@ -190,7 +199,6 @@ public class TelaPedido extends JFrame{
         JPanel painel = new JPanel(new BorderLayout(10, 10));
         painel.setBorder(BorderFactory.createEtchedBorder());
 
-        // Totais
         JPanel painelTotais = new JPanel(new GridLayout(2, 2, 10, 5));
         painelTotais.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -207,7 +215,6 @@ public class TelaPedido extends JFrame{
 
         painel.add(painelTotais, BorderLayout.CENTER);
 
-        // Botões
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         botaoSalvar = new JButton("💾 Salvar Pedido");
@@ -227,17 +234,26 @@ public class TelaPedido extends JFrame{
     }
 
     private void carregarProdutos() {
-
+        // Produtos avulsos
         comboProdutos.addItem(new Produto(1L, "Combo Família", BigDecimal.valueOf(50.00), tipoProduto.COMBO));
         comboProdutos.addItem(new Produto(2L, "Combo Amigo", BigDecimal.valueOf(35.00), tipoProduto.COMBO));
         comboProdutos.addItem(new Produto(3L, "Cento de Coxinha", BigDecimal.valueOf(60.00), tipoProduto.CENTO));
         comboProdutos.addItem(new Produto(4L, "Cento de Risoles", BigDecimal.valueOf(65.00), tipoProduto.CENTO));
         comboProdutos.addItem(new Produto(5L, "Oferta do Dia", BigDecimal.valueOf(25.00), tipoProduto.OFERTA));
+
+        // Combos
+        List<ItemCombo> itensCombo = new ArrayList<>();
+        itensCombo.add(new ItemCombo(new Produto(1L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE), 30));
+        itensCombo.add(new ItemCombo(new Produto(2L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE), 30));
+        itensCombo.add(new ItemCombo(new Produto(3L, "Kibe", BigDecimal.valueOf(0.80), tipoProduto.UNIDADE), 20));
+        itensCombo.add(new ItemCombo(new Produto(4L, "Churros", BigDecimal.valueOf(0.90), tipoProduto.UNIDADE), 20));
+
+        comboCombos.addItem(new Combo(1, "Combo Família", itensCombo, BigDecimal.valueOf(50.00)));
     }
 
     private void adicionarProduto() {
-        Produto produtoSelecionado = (Produto) comboProdutos.getSelectedItem();
-        if (produtoSelecionado == null) {
+        Produto produto = (Produto) comboProdutos.getSelectedItem();
+        if (produto == null) {
             JOptionPane.showMessageDialog(this, "Selecione um produto!");
             return;
         }
@@ -248,30 +264,31 @@ public class TelaPedido extends JFrame{
             return;
         }
 
-        BigDecimal subtotal = produtoSelecionado.getPreco()
-                .multiply(BigDecimal.valueOf(quantidade));
+        BigDecimal precoUnitario;
+        if (produto.getTipoProduto() == tipoProduto.CENTO) {
+            precoUnitario = produto.getPrecoUnitario().divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        } else {
+            precoUnitario = produto.getPrecoUnitario();
+        }
 
-        // Cria o item
-        Item item = new Item(
-                produtoSelecionado.getNomeProduto(),
-                quantidade,
-                produtoSelecionado.getPreco()
-        );
+        BigDecimal subtotal = precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+
+        Item item = new Item(produto.getNomeProduto(), quantidade, precoUnitario);
 
         itensPedido.add(item);
         modelListaItens.addElement(
                 String.format("%dx %s - R$ %.2f",
                         quantidade,
-                        produtoSelecionado.getNomeProduto(),
+                        produto.getNomeProduto(),
                         subtotal.doubleValue()
                 )
         );
+
         atualizarTotais();
     }
 
     private void salvarPedido() {
         try {
-            // Valida campos obrigatórios
             String nome = campoNome.getText().trim();
             String telefone = campoTelefone.getText().trim();
 
@@ -291,47 +308,42 @@ public class TelaPedido extends JFrame{
                 return;
             }
 
-            // Cria o pedido
             Pedido pedido = new Pedido();
-            pedido.setId();
+            pedido.setId(proximoIdPedido++);
             pedido.setNomeCliente(nome);
             pedido.setTelefone(telefone);
 
-            // Endereço (opcional)
             String endereco = campoEndereco.getText().trim();
             if (!endereco.isBlank()) {
                 pedido.setEndereco(endereco);
             }
 
-            // Taxa (opcional)
             String taxaStr = campoTaxa.getText().trim();
             if (!taxaStr.isBlank()) {
                 try {
                     BigDecimal taxa = new BigDecimal(taxaStr.replace(",", "."));
                     pedido.setTaxaEntrega(taxa);
                 } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this,
-                            "Taxa inválida! Use números (ex: 10,00)",
-                            "Erro",
-                            JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Taxa inválida!");
                     return;
                 }
             }
 
-            // Itens
-            pedido.setItens(new ArrayList<>(itensPedido));
+            // ★ CORREÇÃO AQUI ★
+            List<ItemPedido> itensConvertidos = new ArrayList<>();
+            for (Item item : itensPedido) {
+                itensConvertidos.add(new ItemPedido(item.getNomeProduto(), item.getQuantidade(), item.getPrecoUnitario()));
+            }
+            pedido.setItens(itensConvertidos);
 
-            // Salva via Service
             service.salvarPedido(pedido);
 
-            // Sucesso
             JOptionPane.showMessageDialog(this,
                     "✅ Pedido #" + pedido.getId() + " salvo com sucesso!\n" +
                             "Total: R$ " + String.format("%.2f", pedido.getTotal().doubleValue()),
                     "Sucesso",
                     JOptionPane.INFORMATION_MESSAGE);
 
-            // Limpa a tela
             limparCampos();
 
         } catch (Exception e) {
@@ -355,14 +367,13 @@ public class TelaPedido extends JFrame{
     }
 
     private void atualizarTotais() {
-        // Calcula subtotal
         BigDecimal subtotal = itensPedido.stream()
-                .map(item -> item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())))
+                .map(item -> item.getPrecoUnitario()
+                        .multiply(BigDecimal.valueOf(item.getQuantidade())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         labelSubtotal.setText("R$ " + String.format("%.2f", subtotal.doubleValue()));
 
-        // Calcula total (subtotal + taxa)
         BigDecimal total = subtotal;
         String taxaStr = campoTaxa.getText().trim();
         if (!taxaStr.isBlank()) {
@@ -386,7 +397,7 @@ public class TelaPedido extends JFrame{
     private void habilitarTaxa() {
         if (!campoEndereco.getText().trim().isBlank()) {
             campoTaxa.setEnabled(true);
-            campoTaxa.setText("10,00"); // Valor sugerido (opcional)
+            campoTaxa.setText("10,00");
         } else {
             campoTaxa.setEnabled(false);
             campoTaxa.setText("");
@@ -394,7 +405,33 @@ public class TelaPedido extends JFrame{
         }
     }
 
-    // ============ MAIN PARA TESTE ============
+    private void abrirMontagemCombo() {
+        Combo comboSelecionado = (Combo) comboCombos.getSelectedItem();
+        if (comboSelecionado == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um combo!");
+            return;
+        }
+
+        TelaMontagemCombo tela = new TelaMontagemCombo(this, comboSelecionado);
+        tela.setVisible(true);
+
+        List<Item> itensEscolhidos = tela.getItensSelecionados();
+        if (itensEscolhidos != null && !itensEscolhidos.isEmpty()) {
+            for (Item item : itensEscolhidos) {
+                itensPedido.add(item);
+                modelListaItens.addElement(
+                        String.format("%dx %s - R$ %.2f",
+                                item.getQuantidade(),
+                                item.getNomeProduto(),
+                                item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())).doubleValue()
+                        )
+                );
+            }
+            atualizarTotais();
+            JOptionPane.showMessageDialog(this, "✅ Combo adicionado com " + itensEscolhidos.size() + " itens!");
+        }
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             TelaPedido tela = new TelaPedido();
@@ -402,4 +439,3 @@ public class TelaPedido extends JFrame{
         });
     }
 }
-

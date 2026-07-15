@@ -9,8 +9,9 @@ public class Produto {
 
     private Long id;
     private String nomeProduto;
-    private BigDecimal preco;
+    private BigDecimal precoUnitario;
     private tipoProduto tipoProduto;
+
 
     public Produto() {
     }
@@ -18,7 +19,7 @@ public class Produto {
     public Produto(Long id, String nomeProduto, BigDecimal preco, tipoProduto tipoProduto) {
         this.id = id;
         this.nomeProduto = nomeProduto;
-        this.preco = preco;
+        this.precoUnitario = preco;
         this.tipoProduto = tipoProduto;
     }
 
@@ -38,12 +39,12 @@ public class Produto {
         this.nomeProduto = nomeProduto;
     }
 
-    public BigDecimal getPreco() {
-        return preco;
+    public BigDecimal getPrecoUnitario() {
+        return precoUnitario;
     }
 
-    public void setPreco(BigDecimal preco) {
-        this.preco = preco;
+    public void setPrecoUnitario(BigDecimal precoUnitario) {
+        this.precoUnitario = precoUnitario;
     }
 
     public tipoProduto getTipoProduto() {
@@ -54,19 +55,20 @@ public class Produto {
         this.tipoProduto = tipoProduto;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Produto produto)) return false;
-        return Objects.equals(getId(), produto.getId()) && Objects.equals(getNomeProduto(), produto.getNomeProduto()) && Objects.equals(getPreco(), produto.getPreco()) && getTipoProduto() == produto.getTipoProduto();
+        return Objects.equals(getId(), produto.getId()) && Objects.equals(getNomeProduto(), produto.getNomeProduto()) && Objects.equals(getPrecoUnitario(), produto.getPrecoUnitario()) && getTipoProduto() == produto.getTipoProduto();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getNomeProduto(), getPreco(), getTipoProduto());
+        return Objects.hash(getId(), getNomeProduto(), getPrecoUnitario(), getTipoProduto());
     }
 
     @Override
     public String toString() {
-        return nomeProduto + " (R$ " + String.format("%.2f", preco.doubleValue()) + ")";
+        return nomeProduto + " (R$ " + String.format("%.2f", precoUnitario.doubleValue()) + ")";
     }
 }
