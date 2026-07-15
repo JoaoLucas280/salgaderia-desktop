@@ -64,4 +64,9 @@ public class Produto {
     public int hashCode() {
         return Objects.hash(getId(), getNomeProduto(), getPreco(), getTipoProduto());
     }
+
+    @Override
+    public String toString() {
+        return nomeProduto + " (R$ " + String.format("%.2f", preco.doubleValue()) + ")";
+    }
 }

@@ -32,6 +32,10 @@ public class Pedido {
         return id;
     }
 
+    public void setId() {
+        this.id = id;
+    }
+
     public String getNomeCliente() {
         return nomeCliente;
     }
