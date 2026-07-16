@@ -25,14 +25,22 @@ public class TelaPedido extends JFrame {
     private JTextField campoEndereco;
     private JTextField campoTaxa;
 
-    // Produtos
-    private JComboBox<Produto> comboProdutos;
-    private JSpinner spinnerQuantidade;
-    private JButton botaoAdicionar;
+    // Aba UNITÁRIOS
+    private JComboBox<Produto> comboUnitarios;
+    private JSpinner spinnerUnitarioQtd;
+    private JButton botaoAdicionarUnitario;
 
-    // Combos
+    // Aba COMBOS
     private JComboBox<Combo> comboCombos;
     private JButton botaoMontarCombo;
+
+    // Aba CENTOS
+    private JComboBox<Combo> comboCentos;
+    private JButton botaoMontarCento;
+
+    // Aba OFERTAS
+    private JComboBox<Combo> comboOfertas;
+    private JButton botaoMontarOferta;
 
     // Lista de itens
     private DefaultListModel<String> modelListaItens;
@@ -146,51 +154,93 @@ public class TelaPedido extends JFrame {
         JPanel painel = new JPanel(new BorderLayout(5, 5));
         painel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(),
-                "🍗 Produtos do Pedido",
+                "🍗 Adicionar Produtos",
                 TitledBorder.DEFAULT_JUSTIFICATION,
                 TitledBorder.DEFAULT_POSITION,
                 new Font("Arial", Font.BOLD, 14)
         ));
 
-        JPanel painelAdicao = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        // Abas para cada tipo de produto
+        JTabbedPane abas = new JTabbedPane();
+        abas.addTab("🥒 Unitários", criarAbaUnitarios());
+        abas.addTab("🧩 Combos", criarAbaCombos());
+        abas.addTab("📦 Centos", criarAbaCentos());
+        abas.addTab("🎁 Ofertas", criarAbaOfertas());
 
-        // Produtos avulsos
-        comboProdutos = new JComboBox<>();
-        comboProdutos.setPreferredSize(new Dimension(200, 30));
-        painelAdicao.add(new JLabel("Produto:"));
-        painelAdicao.add(comboProdutos);
+        painel.add(abas, BorderLayout.NORTH);
 
-        spinnerQuantidade = new JSpinner(new SpinnerNumberModel(1, 1, 999, 1));
-        spinnerQuantidade.setPreferredSize(new Dimension(60, 30));
-        painelAdicao.add(new JLabel("Qtd:"));
-        painelAdicao.add(spinnerQuantidade);
-
-        botaoAdicionar = new JButton("➕ Adicionar");
-        botaoAdicionar.addActionListener(e -> adicionarProduto());
-        painelAdicao.add(botaoAdicionar);
-
-        // Separador
-        painelAdicao.add(new JLabel("  |  "));
-
-        // Combos
-        comboCombos = new JComboBox<>();
-        comboCombos.setPreferredSize(new Dimension(200, 30));
-        painelAdicao.add(new JLabel("Combo:"));
-        painelAdicao.add(comboCombos);
-
-        botaoMontarCombo = new JButton("🧩 Montar Combo");
-        botaoMontarCombo.addActionListener(e -> abrirMontagemCombo());
-        painelAdicao.add(botaoMontarCombo);
-
-        painel.add(painelAdicao, BorderLayout.NORTH);
-
-        // Lista de itens
+        // Lista de itens do pedido
         modelListaItens = new DefaultListModel<>();
         listaItens = new JList<>(modelListaItens);
         listaItens.setFont(new Font("Monospaced", Font.PLAIN, 12));
         JScrollPane scrollLista = new JScrollPane(listaItens);
         scrollLista.setPreferredSize(new Dimension(500, 150));
         painel.add(scrollLista, BorderLayout.CENTER);
+
+        return painel;
+    }
+
+    private JPanel criarAbaUnitarios() {
+        JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
+        comboUnitarios = new JComboBox<>();
+        comboUnitarios.setPreferredSize(new Dimension(200, 30));
+        painel.add(new JLabel("Produto:"));
+        painel.add(comboUnitarios);
+
+        spinnerUnitarioQtd = new JSpinner(new SpinnerNumberModel(1, 1, 999, 1));
+        spinnerUnitarioQtd.setPreferredSize(new Dimension(60, 30));
+        painel.add(new JLabel("Qtd:"));
+        painel.add(spinnerUnitarioQtd);
+
+        botaoAdicionarUnitario = new JButton("➕ Adicionar");
+        botaoAdicionarUnitario.addActionListener(e -> adicionarProdutoUnitario());
+        painel.add(botaoAdicionarUnitario);
+
+        return painel;
+    }
+
+    private JPanel criarAbaCombos() {
+        JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
+        comboCombos = new JComboBox<>();
+        comboCombos.setPreferredSize(new Dimension(250, 30));
+        painel.add(new JLabel("Selecione um Combo:"));
+        painel.add(comboCombos);
+
+        botaoMontarCombo = new JButton("🧩 Montar Combo");
+        botaoMontarCombo.addActionListener(e -> abrirMontagemCombo());
+        painel.add(botaoMontarCombo);
+
+        return painel;
+    }
+
+    private JPanel criarAbaCentos() {
+        JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
+        comboCentos = new JComboBox<>();
+        comboCentos.setPreferredSize(new Dimension(250, 30));
+        painel.add(new JLabel("Selecione um Cento:"));
+        painel.add(comboCentos);
+
+        botaoMontarCento = new JButton("📦 Montar Cento");
+        botaoMontarCento.addActionListener(e -> abrirMontagemCento());
+        painel.add(botaoMontarCento);
+
+        return painel;
+    }
+
+    private JPanel criarAbaOfertas() {
+        JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
+        comboOfertas = new JComboBox<>();
+        comboOfertas.setPreferredSize(new Dimension(250, 30));
+        painel.add(new JLabel("Selecione uma Oferta:"));
+        painel.add(comboOfertas);
+
+        botaoMontarOferta = new JButton("🎁 Montar Oferta");
+        botaoMontarOferta.addActionListener(e -> abrirMontagemOferta());
+        painel.add(botaoMontarOferta);
 
         return painel;
     }
@@ -234,47 +284,58 @@ public class TelaPedido extends JFrame {
     }
 
     private void carregarProdutos() {
-        // Produtos avulsos
-        comboProdutos.addItem(new Produto(1L, "Combo Família", BigDecimal.valueOf(50.00), tipoProduto.COMBO));
-        comboProdutos.addItem(new Produto(2L, "Combo Amigo", BigDecimal.valueOf(35.00), tipoProduto.COMBO));
-        comboProdutos.addItem(new Produto(3L, "Cento de Coxinha", BigDecimal.valueOf(60.00), tipoProduto.CENTO));
-        comboProdutos.addItem(new Produto(4L, "Cento de Risoles", BigDecimal.valueOf(65.00), tipoProduto.CENTO));
-        comboProdutos.addItem(new Produto(5L, "Oferta do Dia", BigDecimal.valueOf(25.00), tipoProduto.OFERTA));
+        // Produtos UNITÁRIOS (preço fixo ou valor unitário)
+        comboUnitarios.addItem(new Produto(1L, "Coxinha Unitária", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE));
+        comboUnitarios.addItem(new Produto(2L, "Risole Unitária", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE));
+        comboUnitarios.addItem(new Produto(3L, "Kibe Unitário", BigDecimal.valueOf(0.80), tipoProduto.UNIDADE));
+        comboUnitarios.addItem(new Produto(4L, "Churro Unitário", BigDecimal.valueOf(0.90), tipoProduto.UNIDADE));
 
-        // Combos
-        List<ItemCombo> itensCombo = new ArrayList<>();
-        itensCombo.add(new ItemCombo(new Produto(1L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE), 30));
-        itensCombo.add(new ItemCombo(new Produto(2L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE), 30));
-        itensCombo.add(new ItemCombo(new Produto(3L, "Kibe", BigDecimal.valueOf(0.80), tipoProduto.UNIDADE), 20));
-        itensCombo.add(new ItemCombo(new Produto(4L, "Churros", BigDecimal.valueOf(0.90), tipoProduto.UNIDADE), 20));
+        // COMBOS (com limite de salgadinhos + bebidas)
+        List<ItemCombo> itensCombo1 = new ArrayList<>();
+        itensCombo1.add(new ItemCombo(new Produto(101L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE), 30));
+        itensCombo1.add(new ItemCombo(new Produto(102L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE), 30));
+        itensCombo1.add(new ItemCombo(new Produto(103L, "Kibe", BigDecimal.valueOf(0.80), tipoProduto.UNIDADE), 20));
+        itensCombo1.add(new ItemCombo(new Produto(104L, "Churro", BigDecimal.valueOf(0.90), tipoProduto.UNIDADE), 20));
+        comboCombos.addItem(new Combo(1, "Combo Família (100 salgados)", itensCombo1, BigDecimal.valueOf(50.00)));
 
-        comboCombos.addItem(new Combo(1, "Combo Família", itensCombo, BigDecimal.valueOf(50.00)));
+        List<ItemCombo> itensCombo2 = new ArrayList<>();
+        itensCombo2.add(new ItemCombo(new Produto(105L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE), 20));
+        itensCombo2.add(new ItemCombo(new Produto(106L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE), 15));
+        itensCombo2.add(new ItemCombo(new Produto(107L, "Kibe", BigDecimal.valueOf(0.80), tipoProduto.UNIDADE), 15));
+        comboCombos.addItem(new Combo(2, "Combo Amigo (50 salgados)", itensCombo2, BigDecimal.valueOf(35.00)));
+
+        // CENTOS (100 salgados divisíveis)
+        List<ItemCombo> itemsCento = new ArrayList<>();
+        itemsCento.add(new ItemCombo(new Produto(201L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE), 100));
+        itemsCento.add(new ItemCombo(new Produto(202L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE), 100));
+        itemsCento.add(new ItemCombo(new Produto(203L, "Kibe", BigDecimal.valueOf(0.80), tipoProduto.UNIDADE), 100));
+        itemsCento.add(new ItemCombo(new Produto(204L, "Churro", BigDecimal.valueOf(0.90), tipoProduto.UNIDADE), 100));
+        comboCentos.addItem(new Combo(101, "Cento de Salgados (100 total)", itemsCento, BigDecimal.valueOf(60.00)));
+
+        // OFERTAS
+        List<ItemCombo> itensOferta = new ArrayList<>();
+        itensOferta.add(new ItemCombo(new Produto(301L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE), 30));
+        itensOferta.add(new ItemCombo(new Produto(302L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE), 20));
+        comboOfertas.addItem(new Combo(201, "Oferta do Dia (50 salgados)", itensOferta, BigDecimal.valueOf(25.00)));
     }
 
-    private void adicionarProduto() {
-        Produto produto = (Produto) comboProdutos.getSelectedItem();
+    private void adicionarProdutoUnitario() {
+        Produto produto = (Produto) comboUnitarios.getSelectedItem();
         if (produto == null) {
             JOptionPane.showMessageDialog(this, "Selecione um produto!");
             return;
         }
 
-        int quantidade = (int) spinnerQuantidade.getValue();
+        int quantidade = (int) spinnerUnitarioQtd.getValue();
         if (quantidade <= 0) {
             JOptionPane.showMessageDialog(this, "Quantidade deve ser maior que zero!");
             return;
         }
 
-        BigDecimal precoUnitario;
-        if (produto.getTipoProduto() == tipoProduto.CENTO) {
-            precoUnitario = produto.getPrecoUnitario().divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-        } else {
-            precoUnitario = produto.getPrecoUnitario();
-        }
-
+        BigDecimal precoUnitario = produto.getPrecoUnitario();
         BigDecimal subtotal = precoUnitario.multiply(BigDecimal.valueOf(quantidade));
 
         Item item = new Item(produto.getNomeProduto(), quantidade, precoUnitario);
-
         itensPedido.add(item);
         modelListaItens.addElement(
                 String.format("%dx %s - R$ %.2f",
@@ -284,6 +345,7 @@ public class TelaPedido extends JFrame {
                 )
         );
 
+        spinnerUnitarioQtd.setValue(1);
         atualizarTotais();
     }
 
@@ -329,7 +391,6 @@ public class TelaPedido extends JFrame {
                 }
             }
 
-            // ★ CORREÇÃO AQUI ★
             List<ItemPedido> itensConvertidos = new ArrayList<>();
             for (Item item : itensPedido) {
                 itensConvertidos.add(new ItemPedido(item.getNomeProduto(), item.getQuantidade(), item.getPrecoUnitario()));
@@ -388,7 +449,7 @@ public class TelaPedido extends JFrame {
 
     private void configurarJanela() {
         setTitle("📝 Novo Pedido - Salgaderia");
-        setSize(650, 550);
+        setSize(750, 650);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -429,6 +490,60 @@ public class TelaPedido extends JFrame {
             }
             atualizarTotais();
             JOptionPane.showMessageDialog(this, "✅ Combo adicionado com " + itensEscolhidos.size() + " itens!");
+        }
+    }
+
+    private void abrirMontagemCento() {
+        Combo centoSelecionado = (Combo) comboCentos.getSelectedItem();
+        if (centoSelecionado == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um cento!");
+            return;
+        }
+
+        TelaMontagemCento tela = new TelaMontagemCento(this, centoSelecionado);
+        tela.setVisible(true);
+
+        List<Item> itensEscolhidos = tela.getItensSelecionados();
+        if (itensEscolhidos != null && !itensEscolhidos.isEmpty()) {
+            for (Item item : itensEscolhidos) {
+                itensPedido.add(item);
+                modelListaItens.addElement(
+                        String.format("%dx %s - R$ %.2f",
+                                item.getQuantidade(),
+                                item.getNomeProduto(),
+                                item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())).doubleValue()
+                        )
+                );
+            }
+            atualizarTotais();
+            JOptionPane.showMessageDialog(this, "✅ Cento adicionado com " + itensEscolhidos.size() + " itens!");
+        }
+    }
+
+    private void abrirMontagemOferta() {
+        Combo ofertaSelecionada = (Combo) comboOfertas.getSelectedItem();
+        if (ofertaSelecionada == null) {
+            JOptionPane.showMessageDialog(this, "Selecione uma oferta!");
+            return;
+        }
+
+        TelaMontagemOferta tela = new TelaMontagemOferta(this, ofertaSelecionada);
+        tela.setVisible(true);
+
+        List<Item> itensEscolhidos = tela.getItensSelecionados();
+        if (itensEscolhidos != null && !itensEscolhidos.isEmpty()) {
+            for (Item item : itensEscolhidos) {
+                itensPedido.add(item);
+                modelListaItens.addElement(
+                        String.format("%dx %s - R$ %.2f",
+                                item.getQuantidade(),
+                                item.getNomeProduto(),
+                                item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())).doubleValue()
+                        )
+                );
+            }
+            atualizarTotais();
+            JOptionPane.showMessageDialog(this, "✅ Oferta adicionada com " + itensEscolhidos.size() + " itens!");
         }
     }
 

@@ -1,7 +1,7 @@
 package salgaderia.service;
 
 import salgaderia.dao.DadosDAO;
-import salgaderia.model.Item;
+import salgaderia.model.ItemPedido;
 import salgaderia.model.Pedido;
 
 import java.math.BigDecimal;
@@ -30,7 +30,11 @@ public class PedidoService {
     public BigDecimal calcularTotal(Pedido pedido) {
         var subtotal = pedido.getItens() != null ?
                 pedido.getItens().stream()
-                        .map(item -> item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())))
+                        .map(item -> {
+                            BigDecimal preco = item.getPrecoUnitario() != null ? 
+                                item.getPrecoUnitario() : BigDecimal.ZERO;
+                            return preco.multiply(BigDecimal.valueOf(item.getQuantidade()));
+                        })
                         .reduce(BigDecimal.ZERO, BigDecimal::add)
                 : BigDecimal.ZERO;
 
@@ -43,11 +47,10 @@ public class PedidoService {
 
     public void validarCombo(Pedido pedido) {
         int total = pedido.getItens().stream()
-                .mapToInt(Item::getQuantidade)
+                .mapToInt(ItemPedido::getQuantidade)
                 .sum();
 
-        int maximo = pedido.getItens().get(0).getQuantidadeMaxima();
-
+        int maximo = 100;
         if (total > maximo) {
             throw new IllegalArgumentException("Total de salgados excede o limite do combo!");
         }

@@ -14,6 +14,11 @@ public class Item {
     public Item() {
     }
 
+    public Item(String nomeProduto, int quantidade){
+        this.nomeProduto = nomeProduto;
+        this.quantidade = quantidade;
+    }
+
     public Item(String nomeProduto, int quantidade, BigDecimal precoUnitario, BigDecimal subtotal, int quantidadeMaxima) {
         this.nomeProduto = nomeProduto;
         this.quantidade = quantidade;
