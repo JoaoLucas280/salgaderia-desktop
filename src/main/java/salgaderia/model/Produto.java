@@ -11,6 +11,8 @@ public class Produto {
     private String nomeProduto;
     private BigDecimal precoUnitario;
     private tipoProduto tipoProduto;
+    private boolean ativo;
+    private BigDecimal precoOverride;
 
 
     public Produto() {
@@ -21,6 +23,15 @@ public class Produto {
         this.nomeProduto = nomeProduto;
         this.precoUnitario = preco;
         this.tipoProduto = tipoProduto;
+        this.ativo = true;
+    }
+
+    public Produto(Long id, String nomeProduto, BigDecimal preco, tipoProduto tipoProduto, boolean ativo) {
+        this.id = id;
+        this.nomeProduto = nomeProduto;
+        this.precoUnitario = preco;
+        this.tipoProduto = tipoProduto;
+        this.ativo = ativo;
     }
 
     public Long getId() {
@@ -40,6 +51,10 @@ public class Produto {
     }
 
     public BigDecimal getPrecoUnitario() {
+        // Se houver override, retorna o preço override
+        if (precoOverride != null && precoOverride.compareTo(BigDecimal.ZERO) > 0) {
+            return precoOverride;
+        }
         return precoUnitario;
     }
 
@@ -53,6 +68,22 @@ public class Produto {
 
     public void setTipoProduto(tipoProduto tipoProduto) {
         this.tipoProduto = tipoProduto;
+    }
+
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
+    }
+
+    public BigDecimal getPrecoOverride() {
+        return precoOverride;
+    }
+
+    public void setPrecoOverride(BigDecimal precoOverride) {
+        this.precoOverride = precoOverride;
     }
 
 
@@ -69,6 +100,6 @@ public class Produto {
 
     @Override
     public String toString() {
-        return nomeProduto + " (R$ " + String.format("%.2f", precoUnitario.doubleValue()) + ")";
+        return nomeProduto + " (R$ " + String.format("%.2f", getPrecoUnitario().doubleValue()) + ")";
     }
 }

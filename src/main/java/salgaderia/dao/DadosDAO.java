@@ -1,5 +1,6 @@
 package salgaderia.dao;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -27,6 +28,8 @@ public class DadosDAO {
         mapper.registerModule(new JavaTimeModule());
 
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        // Ignorar campos desconhecidos do JSON (compatibilidade com versões antigas)
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         this.pastaDados = System.getProperty("user.dir") + "/dados/";
 
@@ -45,11 +48,13 @@ public class DadosDAO {
                 return new ArrayList<>();
             }
 
-            return mapper.readValue(arquivo, mapper.getTypeFactory().constructCollectionType(List.class, Pedido.class));
+            List<Pedido> pedidos = mapper.readValue(arquivo, mapper.getTypeFactory().constructCollectionType(List.class, Pedido.class));
+            return new ArrayList<>(pedidos);
 
         }catch (IOException e) {
             System.err.println("Erro ao carregar pedidos: " + e.getMessage());
-            return List.of();
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 

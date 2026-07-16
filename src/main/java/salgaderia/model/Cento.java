@@ -4,35 +4,35 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
-public class Combo {
+public class Cento {
     private int id;
     private String nome;
     private List<ItemCombo> itens;
     private BigDecimal precoTotal;
-    private int quantidadeMaximaDeItems;
-    private int quantidadeMaximaDeFlavors;
+    private int quantidadeMaxima;
+    private int quantidadeMaximaDeSabores;
     private BigDecimal precoOverride;
 
-    public Combo() {
+    public Cento() {
     }
 
-    public Combo(int id, String nome, List<ItemCombo> itens, BigDecimal precoTotal) {
+    public Cento(int id, String nome, List<ItemCombo> itens, BigDecimal precoTotal) {
         this.id = id;
         this.nome = nome;
         this.itens = itens;
         this.precoTotal = precoTotal;
-        this.quantidadeMaximaDeItems = 100;
-        this.quantidadeMaximaDeFlavors = itens != null ? itens.size() : 4;
+        this.quantidadeMaxima = 100;
+        this.quantidadeMaximaDeSabores = itens != null ? itens.size() : 5;
     }
 
-    public Combo(int id, String nome, List<ItemCombo> itens, BigDecimal precoTotal, 
-                 int quantidadeMaximaDeItems, int quantidadeMaximaDeFlavors) {
+    public Cento(int id, String nome, List<ItemCombo> itens, BigDecimal precoTotal, 
+                 int quantidadeMaximaDeSabores) {
         this.id = id;
         this.nome = nome;
         this.itens = itens;
         this.precoTotal = precoTotal;
-        this.quantidadeMaximaDeItems = quantidadeMaximaDeItems;
-        this.quantidadeMaximaDeFlavors = quantidadeMaximaDeFlavors;
+        this.quantidadeMaxima = 100;
+        this.quantidadeMaximaDeSabores = quantidadeMaximaDeSabores;
     }
 
     public int getId() {
@@ -71,20 +71,20 @@ public class Combo {
         this.precoTotal = precoTotal;
     }
 
-    public int getQuantidadeMaximaDeItems() {
-        return quantidadeMaximaDeItems;
+    public int getQuantidadeMaxima() {
+        return quantidadeMaxima;
     }
 
-    public void setQuantidadeMaximaDeItems(int quantidadeMaximaDeItems) {
-        this.quantidadeMaximaDeItems = quantidadeMaximaDeItems;
+    public void setQuantidadeMaxima(int quantidadeMaxima) {
+        this.quantidadeMaxima = quantidadeMaxima;
     }
 
-    public int getQuantidadeMaximaDeFlavors() {
-        return quantidadeMaximaDeFlavors;
+    public int getQuantidadeMaximaDeSabores() {
+        return quantidadeMaximaDeSabores;
     }
 
-    public void setQuantidadeMaximaDeFlavors(int quantidadeMaximaDeFlavors) {
-        this.quantidadeMaximaDeFlavors = quantidadeMaximaDeFlavors;
+    public void setQuantidadeMaximaDeSabores(int quantidadeMaximaDeSabores) {
+        this.quantidadeMaximaDeSabores = quantidadeMaximaDeSabores;
     }
 
     public BigDecimal getPrecoOverride() {
@@ -97,8 +97,10 @@ public class Combo {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Combo combo)) return false;
-        return getId() == combo.getId() && Objects.equals(getNome(), combo.getNome()) && Objects.equals(getItens(), combo.getItens()) && Objects.equals(getPrecoTotal(), combo.getPrecoTotal());
+        if (!(o instanceof Cento cento)) return false;
+        return getId() == cento.getId() && Objects.equals(getNome(), cento.getNome()) && 
+               Objects.equals(getItens(), cento.getItens()) && 
+               Objects.equals(getPrecoTotal(), cento.getPrecoTotal());
     }
 
     @Override

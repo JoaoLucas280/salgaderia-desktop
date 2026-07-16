@@ -9,28 +9,25 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TelaMontagemCombo extends JDialog {
+public class TelaMontagemOferta extends JDialog {
 
-    private Combo combo;
+    private Combo oferta;
     private List<Item> itensSelecionados;
     private List<JSpinner> spinnersSalgados;
     private List<Produto> produtosSalgados;
     private JLabel labelTotalSalgados;
-    private JLabel labelLimiteSalgados;
-    private JSpinner spinnerRefrigerante;
-    private JSpinner spinnerSuco;
     private JButton botaoAdicionar;
     private boolean confirmado;
-    private int limiteSalgados;
+    private int limiteOferta;
 
-    public TelaMontagemCombo(JFrame parent, Combo combo) {
-        super(parent, "🧩 Montar Combo: " + combo.getNome(), true);
-        this.combo = combo;
+    public TelaMontagemOferta(JFrame parent, Combo oferta) {
+        super(parent, "🎁 Montar Oferta: " + oferta.getNome(), true);
+        this.oferta = oferta;
         this.itensSelecionados = new ArrayList<>();
         this.spinnersSalgados = new ArrayList<>();
         this.produtosSalgados = new ArrayList<>();
         this.confirmado = false;
-        this.limiteSalgados = combo.getItens().stream().mapToInt(ItemCombo::getQuantidadeMaxima).sum();
+        this.limiteOferta = oferta.getItens().stream().mapToInt(ItemCombo::getQuantidadeMaxima).sum();
 
         initComponents();
         configurarJanela();
@@ -39,17 +36,17 @@ public class TelaMontagemCombo extends JDialog {
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
 
-        // Painel informações do combo
+        // Painel informações da oferta
         JPanel painelInfo = new JPanel(new GridLayout(2, 1, 5, 5));
         painelInfo.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(),
-                "Combo - Informações",
+                "Oferta - Informações",
                 TitledBorder.DEFAULT_JUSTIFICATION,
                 TitledBorder.DEFAULT_POSITION,
                 new Font("Arial", Font.BOLD, 12)
         ));
-        painelInfo.add(new JLabel("Combo: " + combo.getNome()));
-        painelInfo.add(new JLabel("Preço total: R$ " + String.format("%.2f", combo.getPrecoTotal().doubleValue())));
+        painelInfo.add(new JLabel("Oferta: " + oferta.getNome()));
+        painelInfo.add(new JLabel("Preço especial: R$ " + String.format("%.2f", oferta.getPrecoTotal().doubleValue())));
         add(painelInfo, BorderLayout.NORTH);
 
         // Painel central com scroll
@@ -60,7 +57,7 @@ public class TelaMontagemCombo extends JDialog {
         JPanel painelSalgados = new JPanel(new GridBagLayout());
         painelSalgados.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(),
-                "🥒 Escolha os Salgados (máx " + limiteSalgados + ")",
+                "🥒 Escolha os Salgados (máx " + limiteOferta + ")",
                 TitledBorder.DEFAULT_JUSTIFICATION,
                 TitledBorder.DEFAULT_POSITION,
                 new Font("Arial", Font.BOLD, 12)
@@ -72,7 +69,7 @@ public class TelaMontagemCombo extends JDialog {
         gbc.weightx = 1.0;
 
         int linha = 0;
-        for (ItemCombo item : combo.getItens()) {
+        for (ItemCombo item : oferta.getItens()) {
             Produto produto = item.getProduto();
             produtosSalgados.add(produto);
 
@@ -124,52 +121,14 @@ public class TelaMontagemCombo extends JDialog {
         gbc.gridx = 2;
         gbc.gridy = linha;
         gbc.gridwidth = 1;
-        labelTotalSalgados = new JLabel("0 / " + limiteSalgados);
+        labelTotalSalgados = new JLabel("0 / " + limiteOferta);
         labelTotalSalgados.setFont(new Font("Arial", Font.BOLD, 12));
         painelSalgados.add(labelTotalSalgados, gbc);
-        linha++;
 
         JScrollPane scrollSalgados = new JScrollPane(painelSalgados);
         scrollSalgados.setPreferredSize(new Dimension(500, 250));
         painelCentral.add(scrollSalgados, BorderLayout.CENTER);
 
-        // Painel bebidas (rodapé)
-        JPanel painelBebidas = new JPanel(new GridBagLayout());
-        painelBebidas.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(),
-                "🥤 Adicione Bebidas (Opcional)",
-                TitledBorder.DEFAULT_JUSTIFICATION,
-                TitledBorder.DEFAULT_POSITION,
-                new Font("Arial", Font.BOLD, 12)
-        ));
-
-        GridBagConstraints gbcBebidas = new GridBagConstraints();
-        gbcBebidas.insets = new Insets(5, 5, 5, 5);
-        gbcBebidas.fill = GridBagConstraints.HORIZONTAL;
-
-        // Refrigerante
-        gbcBebidas.gridx = 0;
-        gbcBebidas.gridy = 0;
-        painelBebidas.add(new JLabel("Refrigerante (R$ 5,00):"), gbcBebidas);
-
-        gbcBebidas.gridx = 1;
-        gbcBebidas.gridy = 0;
-        spinnerRefrigerante = new JSpinner(new SpinnerNumberModel(0, 0, 99, 1));
-        spinnerRefrigerante.setPreferredSize(new Dimension(60, 30));
-        painelBebidas.add(spinnerRefrigerante, gbcBebidas);
-
-        // Suco
-        gbcBebidas.gridx = 0;
-        gbcBebidas.gridy = 1;
-        painelBebidas.add(new JLabel("Suco (R$ 4,00):"), gbcBebidas);
-
-        gbcBebidas.gridx = 1;
-        gbcBebidas.gridy = 1;
-        spinnerSuco = new JSpinner(new SpinnerNumberModel(0, 0, 99, 1));
-        spinnerSuco.setPreferredSize(new Dimension(60, 30));
-        painelBebidas.add(spinnerSuco, gbcBebidas);
-
-        painelCentral.add(painelBebidas, BorderLayout.SOUTH);
         add(painelCentral, BorderLayout.CENTER);
 
         // Painel rodapé com botões
@@ -203,10 +162,10 @@ public class TelaMontagemCombo extends JDialog {
             total += (int) spinner.getValue();
         }
 
-        labelTotalSalgados.setText(total + " / " + limiteSalgados);
+        labelTotalSalgados.setText(total + " / " + limiteOferta);
 
         // Validação: se ultrapassar o limite, desabilita botão
-        if (total > limiteSalgados) {
+        if (total > limiteOferta) {
             labelTotalSalgados.setForeground(Color.RED);
             botaoAdicionar.setEnabled(false);
         } else {
@@ -231,22 +190,9 @@ public class TelaMontagemCombo extends JDialog {
         }
 
         // Validar total de salgados
-        if (totalSalgados > limiteSalgados) {
-            JOptionPane.showMessageDialog(this, "Total de salgados excede o limite (" + limiteSalgados + ")!");
+        if (totalSalgados > limiteOferta) {
+            JOptionPane.showMessageDialog(this, "Total de salgados excede o limite (" + limiteOferta + ")!");
             return;
-        }
-
-        // Adicionar bebidas
-        int qRefri = (int) spinnerRefrigerante.getValue();
-        if (qRefri > 0) {
-            Item item = new Item("Refrigerante", qRefri, BigDecimal.valueOf(5.00));
-            itensSelecionados.add(item);
-        }
-
-        int qSuco = (int) spinnerSuco.getValue();
-        if (qSuco > 0) {
-            Item item = new Item("Suco", qSuco, BigDecimal.valueOf(4.00));
-            itensSelecionados.add(item);
         }
 
         if (itensSelecionados.isEmpty()) {
@@ -259,7 +205,7 @@ public class TelaMontagemCombo extends JDialog {
     }
 
     private void configurarJanela() {
-        setSize(600, 500);
+        setSize(600, 400);
         setLocationRelativeTo(getParent());
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     }
@@ -268,4 +214,3 @@ public class TelaMontagemCombo extends JDialog {
         return confirmado ? itensSelecionados : null;
     }
 }
-
