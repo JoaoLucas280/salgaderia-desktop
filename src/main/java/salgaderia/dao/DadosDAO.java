@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import salgaderia.model.Cento;
+import salgaderia.model.Combo;
 import salgaderia.model.Pedido;
 
 import java.io.File;
@@ -76,6 +78,52 @@ public class DadosDAO {
             if  (criada) {
                 System.out.println("Pasta criada com sucesso: " + pastaDados);
             }
+        }
+    }
+
+    public List<Combo> carregarCombos() {
+        try {
+            File arquivo = new File(pastaDados + "combos.json");
+            if (!arquivo.exists()) {
+                return new ArrayList<>();
+            }
+            return mapper.readValue(arquivo,
+                    mapper.getTypeFactory().constructCollectionType(List.class, Combo.class));
+        } catch (IOException e) {
+            System.err.println("Erro ao carregar combos: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    public void salvarCombos(List<Combo> combos) {
+        try {
+            mapper.writeValue(new File(pastaDados + "combos.json"), combos);
+        } catch (IOException e) {
+            System.err.println("Erro ao salvar combos: " + e.getMessage());
+        }
+    }
+
+// ============ MÉTODOS PARA CENTOS ============
+
+    public List<Cento> carregarCentos() {
+        try {
+            File arquivo = new File(pastaDados + "centos.json");
+            if (!arquivo.exists()) {
+                return new ArrayList<>();
+            }
+            return mapper.readValue(arquivo,
+                    mapper.getTypeFactory().constructCollectionType(List.class, Cento.class));
+        } catch (IOException e) {
+            System.err.println("Erro ao carregar centos: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    public void salvarCentos(List<Cento> centos) {
+        try {
+            mapper.writeValue(new File(pastaDados + "centos.json"), centos);
+        } catch (IOException e) {
+            System.err.println("Erro ao salvar centos: " + e.getMessage());
         }
     }
 

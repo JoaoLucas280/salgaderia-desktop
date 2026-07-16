@@ -1,5 +1,6 @@
 package salgaderia.ui;
 
+import salgaderia.dao.DadosDAO;
 import salgaderia.model.Combo;
 import salgaderia.model.Cento;
 import salgaderia.model.Produto;
@@ -17,6 +18,8 @@ import java.util.List;
 
 public class TelaAdmin extends JFrame {
 
+    private final DadosDAO dao;
+
     private List<Combo> combos;
     private List<Cento> centos;
     private List<Produto> unitarios;
@@ -28,12 +31,19 @@ public class TelaAdmin extends JFrame {
     private JTable tabelaAdicionais;
 
     public TelaAdmin() {
+        this.dao = new DadosDAO();
+
+        this.combos = dao.carregarCombos();
+        this.centos = dao.carregarCentos();
         this.combos = new ArrayList<>();
         this.centos = new ArrayList<>();
         this.unitarios = new ArrayList<>();
         this.adicionais = new ArrayList<>();
 
-        carregarDadosPadroes();
+        if (combos.isEmpty() && centos.isEmpty()) {
+            carregarDadosPadroes();
+            salvarTodosOsDados();
+        }
         initComponents();
         configurarJanela();
     }
@@ -57,11 +67,15 @@ public class TelaAdmin extends JFrame {
         add(painelRodape, BorderLayout.SOUTH);
     }
 
+    private void salvarTodosOsDados() {
+        dao.salvarCombos(combos);
+        dao.salvarCentos(centos);
+    }
+
     private JPanel criarAbaCombo() {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Tabela de combos
         DefaultTableModel modeloTabela = new DefaultTableModel(
                 new String[]{"ID", "Nome", "Preço", "Max Items", "Max Flavors"}, 0) {
             @Override
@@ -139,8 +153,20 @@ public class TelaAdmin extends JFrame {
             } else {
                 combos.add(comboRetorno);
             }
-            DefaultTableModel modelo = (DefaultTableModel) tabelaCombos.getModel();
-            carregarTabelaCombos(modelo);
+            dao.salvarCombos(combos);
+            carregarTabelaCombos((DefaultTableModel) tabelaCombos.getModel());
+        }
+    }
+
+    private void deletarCombo() {
+        int linhaSelecionada = tabelaCombos.getSelectedRow();
+        if (linhaSelecionada >= 0) {
+            combos.remove(linhaSelecionada);
+            dao.salvarCombos(combos);
+            carregarTabelaCombos((DefaultTableModel) tabelaCombos.getModel());
+            JOptionPane.showMessageDialog(this, "Combo deletado com sucesso!");
+        } else {
+            JOptionPane.showMessageDialog(this, "Selecione um combo para deletar!");
         }
     }
 
@@ -206,7 +232,7 @@ public class TelaAdmin extends JFrame {
                     cento.getId(),
                     cento.getNome(),
                     String.format("R$ %.2f", cento.getPrecoTotal().doubleValue()),
-                    cento.getQuantidadeMaximaDeFlavors()
+                    cento.getQuantidadeMaximaDeSabores()
             });
         }
     }
