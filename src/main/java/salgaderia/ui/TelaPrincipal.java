@@ -1,5 +1,7 @@
 package salgaderia.ui;
 
+import com.formdev.flatlaf.FlatLightLaf;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.*;
@@ -62,6 +64,12 @@ public class TelaPrincipal extends JFrame{
     }
 
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(new FlatLightLaf());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         SwingUtilities.invokeLater(() -> {
             TelaPrincipal tela = new TelaPrincipal();
             tela.setVisible(true);
