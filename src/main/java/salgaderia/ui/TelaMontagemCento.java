@@ -11,7 +11,7 @@ import java.util.List;
 
 public class TelaMontagemCento extends JDialog {
 
-    private Combo cento;
+    private Cento cento;
     private List<Item> itensSelecionados;
     private List<JSpinner> spinnersSalgados;
     private List<Produto> produtosSalgados;
@@ -20,7 +20,7 @@ public class TelaMontagemCento extends JDialog {
     private boolean confirmado;
     private static final int LIMITE_CENTO = 100;
 
-    public TelaMontagemCento(JFrame parent, Combo cento) {
+    public TelaMontagemCento(JFrame parent, Cento cento) {
         super(parent, "📦 Montar Cento: " + cento.getNome(), true);
         this.cento = cento;
         this.itensSelecionados = new ArrayList<>();

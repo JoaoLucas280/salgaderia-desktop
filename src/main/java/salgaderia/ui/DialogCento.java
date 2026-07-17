@@ -116,7 +116,7 @@ public class DialogCento extends JDialog {
         if (centoExistente != null) {
             campoNome.setText(centoExistente.getNome());
             campoPreco.setText(String.format("%.2f", centoExistente.getPrecoTotal().doubleValue()));
-            spinnerMaxFlavors.setValue(centoExistente.getQuantidadeMaximaDeFlavors());
+            spinnerMaxFlavors.setValue(centoExistente.getQuantidadeMaximaDeSabores());
         }
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));

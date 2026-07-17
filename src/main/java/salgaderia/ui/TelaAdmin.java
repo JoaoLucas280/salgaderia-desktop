@@ -1,10 +1,7 @@
 package salgaderia.ui;
 
-import salgaderia.model.Combo;
-import salgaderia.model.Cento;
-import salgaderia.model.Produto;
-import salgaderia.model.Adicional;
-import salgaderia.model.ItemCombo;
+import salgaderia.dao.DadosDAO;
+import salgaderia.model.*;
 import salgaderia.model.enums.tipoProduto;
 
 import javax.swing.*;
@@ -15,8 +12,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TelaAdmin extends JFrame {
+public class TelaAdmin extends JPanel {
 
+    private final DadosDAO dao;
     private List<Combo> combos;
     private List<Cento> centos;
     private List<Produto> unitarios;
@@ -27,19 +25,26 @@ public class TelaAdmin extends JFrame {
     private JTable tabelaUnitarios;
     private JTable tabelaAdicionais;
 
-    public TelaAdmin() {
-        this.combos = new ArrayList<>();
-        this.centos = new ArrayList<>();
-        this.unitarios = new ArrayList<>();
+    private final JFrame parentFrame;
+
+    public TelaAdmin(JFrame parent) {
+        this.parentFrame = parent;
+        this.dao = new DadosDAO();
+        this.combos = dao.carregarCombos();
+        this.centos = dao.carregarCentos();
+        this.unitarios = dao.carregarUnitarios();
         this.adicionais = new ArrayList<>();
 
-        carregarDadosPadroes();
+        if (combos.isEmpty() && centos.isEmpty() && unitarios.isEmpty()) {
+            carregarDadosPadroes();
+            salvarTodosOsDados();
+        }
+
         initComponents();
-        configurarJanela();
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(10, 10));  // ← setLayout agora é do JPanel
 
         JTabbedPane abas = new JTabbedPane();
         abas.addTab("🧩 Combos", criarAbaCombo());
@@ -50,18 +55,19 @@ public class TelaAdmin extends JFrame {
         add(abas, BorderLayout.CENTER);
 
         JPanel painelRodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        JButton botaoFechar = new JButton("Fechar");
-        botaoFechar.addActionListener(e -> dispose());
-        painelRodape.add(botaoFechar);
-
+        // Remove o botão Fechar porque agora é um painel
         add(painelRodape, BorderLayout.SOUTH);
+    }
+
+    private void salvarTodosOsDados() {
+        dao.salvarCombos(combos);
+        dao.salvarCentos(centos);
     }
 
     private JPanel criarAbaCombo() {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Tabela de combos
         DefaultTableModel modeloTabela = new DefaultTableModel(
                 new String[]{"ID", "Nome", "Preço", "Max Items", "Max Flavors"}, 0) {
             @Override
@@ -128,7 +134,7 @@ public class TelaAdmin extends JFrame {
     }
 
     private void abrirDialogCombo(Combo comboExistente) {
-        DialogCombo dialog = new DialogCombo(this, comboExistente);
+        DialogCombo dialog = new DialogCombo(parentFrame, comboExistente);
         dialog.setVisible(true);
 
         Combo comboRetorno = dialog.getComboSalvo();
@@ -139,8 +145,20 @@ public class TelaAdmin extends JFrame {
             } else {
                 combos.add(comboRetorno);
             }
-            DefaultTableModel modelo = (DefaultTableModel) tabelaCombos.getModel();
-            carregarTabelaCombos(modelo);
+            dao.salvarCombos(combos);
+            carregarTabelaCombos((DefaultTableModel) tabelaCombos.getModel());
+        }
+    }
+
+    private void deletarCombo() {
+        int linhaSelecionada = tabelaCombos.getSelectedRow();
+        if (linhaSelecionada >= 0) {
+            combos.remove(linhaSelecionada);
+            dao.salvarCombos(combos);
+            carregarTabelaCombos((DefaultTableModel) tabelaCombos.getModel());
+            JOptionPane.showMessageDialog(this, "Combo deletado com sucesso!");
+        } else {
+            JOptionPane.showMessageDialog(this, "Selecione um combo para deletar!");
         }
     }
 
@@ -206,13 +224,13 @@ public class TelaAdmin extends JFrame {
                     cento.getId(),
                     cento.getNome(),
                     String.format("R$ %.2f", cento.getPrecoTotal().doubleValue()),
-                    cento.getQuantidadeMaximaDeFlavors()
+                    cento.getQuantidadeMaximaDeSabores()
             });
         }
     }
 
     private void abrirDialogCento(Cento centoExistente) {
-        DialogCento dialog = new DialogCento(this, centoExistente);
+        DialogCento dialog = new DialogCento(parentFrame, centoExistente);
         dialog.setVisible(true);
 
         Cento centoRetorno = dialog.getCentoSalvo();
@@ -296,7 +314,7 @@ public class TelaAdmin extends JFrame {
     }
 
     private void abrirDialogUnitario(Produto produtoExistente) {
-        DialogUnitario dialog = new DialogUnitario(this, produtoExistente);
+        DialogUnitario dialog = new DialogUnitario(parentFrame, produtoExistente);
         dialog.setVisible(true);
 
         Produto produtoRetorno = dialog.getProdutoSalvo();
@@ -379,7 +397,7 @@ public class TelaAdmin extends JFrame {
     }
 
     private void abrirDialogAdicional(Adicional adicionalExistente) {
-        DialogAdicional dialog = new DialogAdicional(this, adicionalExistente);
+        DialogAdicional dialog = new DialogAdicional(parentFrame, adicionalExistente);
         dialog.setVisible(true);
 
         Adicional adicionalRetorno = dialog.getAdicionalSalvo();
@@ -405,19 +423,5 @@ public class TelaAdmin extends JFrame {
 
         adicionais.add(new Adicional(1, "Refrigerante", BigDecimal.valueOf(5.00)));
         adicionais.add(new Adicional(2, "Suco", BigDecimal.valueOf(4.00)));
-    }
-
-    private void configurarJanela() {
-        setTitle("🔧 Painel Administrativo - Salgaderia");
-        setSize(900, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            TelaAdmin tela = new TelaAdmin();
-            tela.setVisible(true);
-        });
     }
 }

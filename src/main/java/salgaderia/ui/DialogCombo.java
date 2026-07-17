@@ -147,6 +147,7 @@ public class DialogCombo extends JDialog {
     }
 
     private void add(Border emptyBorder, String north) {
+
     }
 
     private void salvarCombo() {
