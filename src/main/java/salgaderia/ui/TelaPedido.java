@@ -4,6 +4,7 @@ import salgaderia.dao.DadosDAO;
 import salgaderia.model.*;
 import salgaderia.model.enums.tipoProduto;
 import salgaderia.service.PedidoService;
+import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -74,13 +75,7 @@ public class TelaPedido extends JPanel {
 
     private JPanel criarPainelCliente() {
         JPanel painel = new JPanel(new GridBagLayout());
-        painel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(),
-                "📋 Dados do Cliente",
-                TitledBorder.DEFAULT_JUSTIFICATION,
-                TitledBorder.DEFAULT_POSITION,
-                new Font("Arial", Font.BOLD, 14)
-        ));
+        painel.setBorder(StyleConfig.criarBorda("📋 Dados do Cliente"));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -236,8 +231,8 @@ public class TelaPedido extends JPanel {
 
         painelTotais.add(new JLabel("Total (com taxa):"));
         labelTotal = new JLabel("R$ 0,00");
-        labelTotal.setFont(new Font("Arial", Font.BOLD, 16));
-        labelTotal.setForeground(Color.BLUE);
+        labelTotal.setFont(StyleConfig.FONTE_TITULO);
+        labelTotal.setForeground(StyleConfig.COR_PRIMARIA);
         painelTotais.add(labelTotal);
 
         painel.add(painelTotais, BorderLayout.CENTER);
@@ -245,9 +240,7 @@ public class TelaPedido extends JPanel {
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         botaoSalvar = new JButton("💾 Salvar Pedido");
-        botaoSalvar.setBackground(new Color(0, 150, 0));
-        botaoSalvar.setForeground(Color.WHITE);
-        botaoSalvar.setFont(new Font("Arial", Font.BOLD, 14));
+        StyleConfig.estilizarBotao(botaoSalvar, StyleConfig.COR_SUCESSO);
         botaoSalvar.addActionListener(e -> salvarPedido());
         painelBotoes.add(botaoSalvar);
 
