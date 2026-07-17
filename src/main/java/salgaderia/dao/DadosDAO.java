@@ -5,9 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import salgaderia.model.Cento;
-import salgaderia.model.Combo;
-import salgaderia.model.Pedido;
+import salgaderia.model.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +28,7 @@ public class DadosDAO {
         mapper.registerModule(new JavaTimeModule());
 
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        // Ignorar campos desconhecidos do JSON (compatibilidade com versões antigas)
+
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         this.pastaDados = System.getProperty("user.dir") + "/dados/";
@@ -103,7 +101,6 @@ public class DadosDAO {
         }
     }
 
-// ============ MÉTODOS PARA CENTOS ============
 
     public List<Cento> carregarCentos() {
         try {
@@ -127,10 +124,47 @@ public class DadosDAO {
         }
     }
 
+    public List<Produto> carregarUnitarios() {
+        try {
+            File arquivo = new File(pastaDados + "unitarios.json");
+            if (!arquivo.exists()) {
+                return new ArrayList<>();
+            }
+            return mapper.readValue(arquivo,
+                    mapper.getTypeFactory().constructCollectionType(List.class, Produto.class));
+        } catch (IOException e) {
+            System.err.println("Erro ao carregar unitários: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
 
+    public void salvarUnitarios(List<Produto> unitarios) {
+        try {
+            mapper.writeValue(new File(pastaDados + "unitarios.json"), unitarios);
+        } catch (IOException e) {
+            System.err.println("Erro ao salvar unitários: " + e.getMessage());
+        }
+    }
 
+    public List<Oferta> carregarOfertas() {
+        try {
+            File arquivo = new File(pastaDados + "ofertas.json");
+            if (!arquivo.exists()) {
+                return new ArrayList<>();
+            }
+            return mapper.readValue(arquivo,
+                    mapper.getTypeFactory().constructCollectionType(List.class, Oferta.class));
+        } catch (IOException e) {
+            System.err.println("Erro ao carregar ofertas: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
 
-
-
-
+    public void salvarOfertas(List<Oferta> ofertas) {
+        try {
+            mapper.writeValue(new File(pastaDados + "ofertas.json"), ofertas);
+        } catch (IOException e) {
+            System.err.println("Erro ao salvar ofertas: " + e.getMessage());
+        }
+    }
 }
