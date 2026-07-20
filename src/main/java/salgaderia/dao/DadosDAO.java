@@ -22,7 +22,7 @@ public class DadosDAO {
 
     private final String arquivoFinanceiro;
 
-    public DadosDAO (){
+    public DadosDAO() {
         this.mapper = new ObjectMapper();
 
         mapper.registerModule(new JavaTimeModule());
@@ -44,14 +44,14 @@ public class DadosDAO {
         try {
             File arquivo = new File(arquivoPedidos);
 
-            if  (!arquivo.exists()) {
+            if (!arquivo.exists()) {
                 return new ArrayList<>();
             }
 
             List<Pedido> pedidos = mapper.readValue(arquivo, mapper.getTypeFactory().constructCollectionType(List.class, Pedido.class));
             return new ArrayList<>(pedidos);
 
-        }catch (IOException e) {
+        } catch (IOException e) {
             System.err.println("Erro ao carregar pedidos: " + e.getMessage());
             e.printStackTrace();
             return new ArrayList<>();
@@ -71,9 +71,9 @@ public class DadosDAO {
     private void criarPastaSeNaoExistir() {
         File pasta = new File(pastaDados);
 
-        if  (!pasta.exists()) {
+        if (!pasta.exists()) {
             boolean criada = pasta.mkdirs();
-            if  (criada) {
+            if (criada) {
                 System.out.println("Pasta criada com sucesso: " + pastaDados);
             }
         }
@@ -143,28 +143,6 @@ public class DadosDAO {
             mapper.writeValue(new File(pastaDados + "unitarios.json"), unitarios);
         } catch (IOException e) {
             System.err.println("Erro ao salvar unitários: " + e.getMessage());
-        }
-    }
-
-    public List<Oferta> carregarOfertas() {
-        try {
-            File arquivo = new File(pastaDados + "ofertas.json");
-            if (!arquivo.exists()) {
-                return new ArrayList<>();
-            }
-            return mapper.readValue(arquivo,
-                    mapper.getTypeFactory().constructCollectionType(List.class, Oferta.class));
-        } catch (IOException e) {
-            System.err.println("Erro ao carregar ofertas: " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
-
-    public void salvarOfertas(List<Oferta> ofertas) {
-        try {
-            mapper.writeValue(new File(pastaDados + "ofertas.json"), ofertas);
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar ofertas: " + e.getMessage());
         }
     }
 }

@@ -173,6 +173,7 @@ public class TelaMontagemCento extends JDialog {
     private void adicionarItens() {
         itensSelecionados.clear();
         int totalSalgados = 0;
+        int saboresEscolhidos = 0;
 
         // Adicionar salgados
         for (int i = 0; i < spinnersSalgados.size(); i++) {
@@ -182,12 +183,23 @@ public class TelaMontagemCento extends JDialog {
                 Item item = new Item(produto.getNomeProduto(), quantidade, produto.getPrecoUnitario());
                 itensSelecionados.add(item);
                 totalSalgados += quantidade;
+                saboresEscolhidos++;
             }
         }
 
         // Validar total de salgados
         if (totalSalgados > LIMITE_CENTO) {
             JOptionPane.showMessageDialog(this, "Total de salgados não pode exceder " + LIMITE_CENTO + "!");
+            return;
+        }
+
+
+        int maximoSabores = cento.getQuantidadeMaximaDeSabores();
+        if (saboresEscolhidos > maximoSabores) {
+            JOptionPane.showMessageDialog(this,
+                    "Você pode escolher no máximo " + maximoSabores + " sabores diferentes!",
+                    "Limite de sabores",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
