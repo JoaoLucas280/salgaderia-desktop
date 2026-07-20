@@ -18,35 +18,47 @@ import java.util.List;
 public class TelaPedido extends JPanel {
 
     private final PedidoService service;
+    private final JFrame parentFrame;
 
+    // Dados do cliente
     private JTextField campoNome;
     private JTextField campoTelefone;
     private JTextField campoEndereco;
     private JTextField campoTaxa;
 
+    // Unitários
     private JComboBox<Produto> comboUnitarios;
     private JSpinner spinnerUnitarioQtd;
     private JButton botaoAdicionarUnitario;
 
+    // Combos
     private JComboBox<Combo> comboCombos;
     private JButton botaoMontarCombo;
 
+    // Centos
     private JComboBox<Cento> comboCentos;
     private JButton botaoMontarCento;
 
+    // ★ ADICIONAIS ★
+    private JComboBox<Adicional> comboAdicionais;
+    private JSpinner spinnerAdicionalQtd;
+    private JButton botaoAdicionarAdicional;
+
+    // Lista de itens
     private DefaultListModel<String> modelListaItens;
     private JList<String> listaItens;
 
+    // Totais
     private JLabel labelSubtotal;
     private JLabel labelTotal;
 
+    // Botões principais
     private JButton botaoSalvar;
     private JButton botaoLimpar;
 
+    // Dados temporários
     private List<Item> itensPedido;
     private int proximoIdPedido = 1;
-
-    private final JFrame parentFrame;
 
     public TelaPedido(JFrame parent) {
         this.parentFrame = parent;
@@ -55,7 +67,6 @@ public class TelaPedido extends JPanel {
         initComponents();
         carregarProdutos();
     }
-    
 
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
@@ -78,47 +89,27 @@ public class TelaPedido extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Nome
-        gbc.gridx = 0;
-        gbc.gridy = 0;
+        gbc.gridx = 0; gbc.gridy = 0;
         painel.add(new JLabel("Nome:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.gridwidth = 3;
+        gbc.gridx = 1; gbc.gridy = 0; gbc.gridwidth = 3;
         campoNome = new JTextField(20);
         painel.add(campoNome, gbc);
 
-        // Telefone
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
         painel.add(new JLabel("Telefone:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 1;
+        gbc.gridx = 1; gbc.gridy = 1;
         campoTelefone = new JTextField(15);
         painel.add(campoTelefone, gbc);
 
-        // Endereço
-        gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 2;
         painel.add(new JLabel("Endereço:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
+        gbc.gridx = 1; gbc.gridy = 2; gbc.gridwidth = 2;
         campoEndereco = new JTextField(20);
         painel.add(campoEndereco, gbc);
 
-        // Taxa
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 1;
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 1;
         painel.add(new JLabel("Taxa Entrega (R$):"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 3;
+        gbc.gridx = 1; gbc.gridy = 3;
         campoTaxa = new JTextField(10);
         campoTaxa.setEnabled(false);
         painel.add(campoTaxa, gbc);
@@ -145,15 +136,14 @@ public class TelaPedido extends JPanel {
                 new Font("Arial", Font.BOLD, 14)
         ));
 
-        // Abas para cada tipo de produto
         JTabbedPane abas = new JTabbedPane();
         abas.addTab("🥒 Unitários", criarAbaUnitarios());
         abas.addTab("🧩 Combos", criarAbaCombos());
         abas.addTab("📦 Centos", criarAbaCentos());
+        abas.addTab("🥤 Adicionais", criarAbaAdicionais());  // ★ NOVA ABA ★
 
         painel.add(abas, BorderLayout.NORTH);
 
-        // Lista de itens do pedido
         modelListaItens = new DefaultListModel<>();
         listaItens = new JList<>(modelListaItens);
         listaItens.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -214,6 +204,27 @@ public class TelaPedido extends JPanel {
         return painel;
     }
 
+    // ★ ABA DE ADICIONAIS ★
+    private JPanel criarAbaAdicionais() {
+        JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
+        comboAdicionais = new JComboBox<>();
+        comboAdicionais.setPreferredSize(new Dimension(200, 30));
+        painel.add(new JLabel("Adicional:"));
+        painel.add(comboAdicionais);
+
+        spinnerAdicionalQtd = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
+        spinnerAdicionalQtd.setPreferredSize(new Dimension(60, 30));
+        painel.add(new JLabel("Qtd:"));
+        painel.add(spinnerAdicionalQtd);
+
+        botaoAdicionarAdicional = new JButton("➕ Adicionar");
+        botaoAdicionarAdicional.addActionListener(e -> adicionarAdicional());
+        painel.add(botaoAdicionarAdicional);
+
+        return painel;
+    }
+
     private JPanel criarPainelRodape() {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
         painel.setBorder(BorderFactory.createEtchedBorder());
@@ -250,8 +261,44 @@ public class TelaPedido extends JPanel {
         return painel;
     }
 
+    // ==========================================
+    // ★ MÉTODO PARA ADICIONAR ADICIONAL ★
+    // ==========================================
+    private void adicionarAdicional() {
+        Adicional adicional = (Adicional) comboAdicionais.getSelectedItem();
+        if (adicional == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um adicional!");
+            return;
+        }
+
+        int quantidade = (int) spinnerAdicionalQtd.getValue();
+        if (quantidade <= 0) {
+            JOptionPane.showMessageDialog(this, "Quantidade deve ser maior que zero!");
+            return;
+        }
+
+        BigDecimal precoUnitario = adicional.getPreco();
+        BigDecimal subtotal = precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+
+        Item item = new Item(adicional.getNome(), quantidade, precoUnitario);
+        itensPedido.add(item);
+        modelListaItens.addElement(
+                String.format("%dx %s - R$ %.2f",
+                        quantidade,
+                        adicional.getNome(),
+                        subtotal.doubleValue()
+                )
+        );
+
+        spinnerAdicionalQtd.setValue(1);
+        atualizarTotais();
+    }
+
+    // ==========================================
+    // MÉTODOS DE CARREGAMENTO DE PRODUTOS
+    // ==========================================
+
     private void carregarProdutosPadrao() {
-        // Unitários padrão
         comboUnitarios.addItem(new Produto(1L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE, true));
         comboUnitarios.addItem(new Produto(2L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE, true));
         comboUnitarios.addItem(new Produto(3L, "Kibe", BigDecimal.valueOf(0.80), tipoProduto.UNIDADE, true));
@@ -285,9 +332,9 @@ public class TelaPedido extends JPanel {
     private void carregarProdutos() {
         DadosDAO dao = new DadosDAO();
 
+        // Unitários
         List<Produto> unitarios = dao.carregarUnitarios();
         if (unitarios.isEmpty()) {
-
             carregarProdutosPadrao();
         } else {
             for (Produto p : unitarios) {
@@ -295,15 +342,17 @@ public class TelaPedido extends JPanel {
             }
         }
 
+        // Combos
         List<Combo> combos = dao.carregarCombos();
         if (!combos.isEmpty()) {
             for (Combo c : combos) {
                 comboCombos.addItem(c);
             }
         } else {
-
             criarCombosPadrao();
         }
+
+        // Centos
         List<Cento> centos = dao.carregarCentos();
         if (!centos.isEmpty()) {
             for (Cento c : centos) {
@@ -312,7 +361,23 @@ public class TelaPedido extends JPanel {
         } else {
             criarCentosPadrao();
         }
+
+        List<Adicional> adicionais = dao.carregarAdicionais();
+        if (!adicionais.isEmpty()) {
+            for (Adicional a : adicionais) {
+                comboAdicionais.addItem(a);
+            }
+        } else {
+            // Fallback: adicionais padrão
+            comboAdicionais.addItem(new Adicional(1, "Refrigerante", BigDecimal.valueOf(5.00)));
+            comboAdicionais.addItem(new Adicional(2, "Suco", BigDecimal.valueOf(4.00)));
+            comboAdicionais.addItem(new Adicional(3, "Água de Coco", BigDecimal.valueOf(3.00)));
+        }
     }
+
+    // ==========================================
+    // DEMAIS MÉTODOS (ADICIONAR UNITÁRIO, SALVAR, ETC)
+    // ==========================================
 
     private void adicionarProdutoUnitario() {
         Produto produto = (Produto) comboUnitarios.getSelectedItem();
@@ -506,6 +571,4 @@ public class TelaPedido extends JPanel {
             JOptionPane.showMessageDialog(this, "✅ Cento adicionado com " + itensEscolhidos.size() + " itens!");
         }
     }
-
-
 }

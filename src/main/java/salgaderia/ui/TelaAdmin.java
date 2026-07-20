@@ -154,7 +154,7 @@ public class TelaAdmin extends JPanel {
         int linhaSelecionada = tabelaCombos.getSelectedRow();
         if (linhaSelecionada >= 0) {
             combos.remove(linhaSelecionada);
-            dao.salvarCombos(combos);
+            dao.salvarCombos(combos);  // ← ★ ADICIONA ISSO ★
             carregarTabelaCombos((DefaultTableModel) tabelaCombos.getModel());
             JOptionPane.showMessageDialog(this, "Combo deletado com sucesso!");
         } else {
@@ -204,6 +204,7 @@ public class TelaAdmin extends JPanel {
             int linhaSelecionada = tabelaCentos.getSelectedRow();
             if (linhaSelecionada >= 0) {
                 centos.remove(linhaSelecionada);
+                dao.salvarCentos(centos);
                 carregarTabelaCentos(modeloTabela);
                 JOptionPane.showMessageDialog(this, "Cento deletado com sucesso!");
             } else {
@@ -251,6 +252,7 @@ public class TelaAdmin extends JPanel {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        // Tabela
         DefaultTableModel modeloTabela = new DefaultTableModel(
                 new String[]{"ID", "Nome", "Preço Unitário", "Ativo"}, 0) {
             @Override
@@ -266,6 +268,7 @@ public class TelaAdmin extends JPanel {
         JScrollPane scrollPane = new JScrollPane(tabelaUnitarios);
         painel.add(scrollPane, BorderLayout.CENTER);
 
+        // ★ PAINEL DE BOTÕES ★
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton botaoNovo = new JButton("➕ Novo Unitário");
@@ -289,6 +292,7 @@ public class TelaAdmin extends JPanel {
             int linhaSelecionada = tabelaUnitarios.getSelectedRow();
             if (linhaSelecionada >= 0) {
                 unitarios.remove(linhaSelecionada);
+                dao.salvarUnitarios(unitarios);  // ← ★ SALVA NO JSON ★
                 carregarTabelaUnitarios(modeloTabela);
                 JOptionPane.showMessageDialog(this, "Unitário deletado com sucesso!");
             } else {
@@ -326,8 +330,8 @@ public class TelaAdmin extends JPanel {
             } else {
                 unitarios.add(produtoRetorno);
             }
-            DefaultTableModel modelo = (DefaultTableModel) tabelaUnitarios.getModel();
-            carregarTabelaUnitarios(modelo);
+            dao.salvarUnitarios(unitarios);
+            carregarTabelaUnitarios((DefaultTableModel) tabelaUnitarios.getModel());
         }
     }
 
@@ -373,7 +377,8 @@ public class TelaAdmin extends JPanel {
             int linhaSelecionada = tabelaAdicionais.getSelectedRow();
             if (linhaSelecionada >= 0) {
                 adicionais.remove(linhaSelecionada);
-                carregarTabelaAdicionais(modeloTabela);
+                dao.salvarAdicionais(adicionais);  // ← ★ ESSENCIAL ★
+                carregarTabelaAdicionais((DefaultTableModel) tabelaAdicionais.getModel());
                 JOptionPane.showMessageDialog(this, "Adicional deletado com sucesso!");
             } else {
                 JOptionPane.showMessageDialog(this, "Selecione um adicional para deletar!");
@@ -398,6 +403,12 @@ public class TelaAdmin extends JPanel {
     }
 
     private void abrirDialogAdicional(Adicional adicionalExistente) {
+
+        int proximoId = adicionais.stream()
+                .mapToInt(Adicional::getId)
+                .max()
+                .orElse(0) + 1;
+
         DialogAdicional dialog = new DialogAdicional(parentFrame, adicionalExistente);
         dialog.setVisible(true);
 
@@ -407,10 +418,11 @@ public class TelaAdmin extends JPanel {
                 int indice = adicionais.indexOf(adicionalExistente);
                 adicionais.set(indice, adicionalRetorno);
             } else {
+                adicionalRetorno.setId(proximoId);
                 adicionais.add(adicionalRetorno);
             }
-            DefaultTableModel modelo = (DefaultTableModel) tabelaAdicionais.getModel();
-            carregarTabelaAdicionais(modelo);
+            dao.salvarAdicionais(adicionais);
+            carregarTabelaAdicionais((DefaultTableModel) tabelaAdicionais.getModel());
         }
     }
 
