@@ -241,6 +241,7 @@ public class TelaAdmin extends JPanel {
             } else {
                 centos.add(centoRetorno);
             }
+            dao.salvarCentos(centos);
             DefaultTableModel modelo = (DefaultTableModel) tabelaCentos.getModel();
             carregarTabelaCentos(modelo);
         }

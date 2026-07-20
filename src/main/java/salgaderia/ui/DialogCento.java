@@ -14,18 +14,25 @@ import java.util.List;
 public class DialogCento extends JDialog {
 
     private Cento centoSalvo;
+    private boolean salvou = false;
     private JTextField campoNome;
     private JTextField campoPreco;
     private JSpinner spinnerMaxFlavors;
     private List<JCheckBox> checkboxesProdutos;
+    private List<Produto> produtosDisponiveis;
 
     public DialogCento(JFrame parent, Cento centoExistente) {
         super(parent, "📦 " + (centoExistente != null ? "Editar" : "Novo") + " Cento", true);
         this.centoSalvo = null;
         this.checkboxesProdutos = new ArrayList<>();
+        this.produtosDisponiveis = new ArrayList<>();
 
         initComponents(centoExistente);
         configurarJanela();
+
+        if (centoExistente != null) {
+            preencherCampos(centoExistente);
+        }
     }
 
     private void initComponents(Cento centoExistente) {
@@ -61,7 +68,7 @@ public class DialogCento extends JDialog {
         campoPreco = new JTextField(10);
         painelCampos.add(campoPreco, gbc);
 
-        // Quantidade
+        // Quantidade (fixa em 100)
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 0;
@@ -74,7 +81,7 @@ public class DialogCento extends JDialog {
         spinnerQtd.setEnabled(false);
         painelCampos.add(spinnerQtd, gbc);
 
-        // Máximo de Flavors
+        // Máximo de Sabores
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.weightx = 0;
@@ -96,29 +103,22 @@ public class DialogCento extends JDialog {
         JPanel painelProdutos = new JPanel(new GridLayout(0, 1, 5, 5));
         painelProdutos.setBorder(BorderFactory.createTitledBorder("Produtos Disponíveis (Unitários)"));
 
-        List<Produto> produtosPadrao = new ArrayList<>();
-        produtosPadrao.add(new Produto(1L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE, true));
-        produtosPadrao.add(new Produto(2L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE, true));
-        produtosPadrao.add(new Produto(3L, "Kibe", BigDecimal.valueOf(0.80), tipoProduto.UNIDADE, true));
-        produtosPadrao.add(new Produto(4L, "Churro", BigDecimal.valueOf(0.90), tipoProduto.UNIDADE, true));
+        // Carrega produtos disponíveis
+        produtosDisponiveis.add(new Produto(1L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE, true));
 
-        for (Produto produto : produtosPadrao) {
+        for (Produto produto : produtosDisponiveis) {
             JCheckBox checkbox = new JCheckBox(produto.getNomeProduto() + " (R$ " + String.format("%.2f", produto.getPrecoUnitario()) + "/un)");
             checkboxesProdutos.add(checkbox);
             painelProdutos.add(checkbox);
         }
 
         JScrollPane scrollProdutos = new JScrollPane(painelProdutos);
+        scrollProdutos.setPreferredSize(new Dimension(400, 150));
         painelCampos.add(scrollProdutos, gbc);
 
         add(painelCampos, BorderLayout.CENTER);
 
-        if (centoExistente != null) {
-            campoNome.setText(centoExistente.getNome());
-            campoPreco.setText(String.format("%.2f", centoExistente.getPrecoTotal().doubleValue()));
-            spinnerMaxFlavors.setValue(centoExistente.getQuantidadeMaximaDeSabores());
-        }
-
+        // Botões
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         JButton botaoSalvar = new JButton("✅ Salvar");
@@ -132,39 +132,58 @@ public class DialogCento extends JDialog {
         add(painelBotoes, BorderLayout.SOUTH);
     }
 
-    private void salvarCento() {
-        String nome = campoNome.getText().trim();
-        String precoStr = campoPreco.getText().trim();
+    private void preencherCampos(Cento cento) {
+        campoNome.setText(cento.getNome());
+        campoPreco.setText(String.format("%.2f", cento.getPrecoTotal().doubleValue()));
+        spinnerMaxFlavors.setValue(cento.getQuantidadeMaximaDeSabores());
 
-        if (nome.isEmpty() || precoStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nome e Preço são obrigatórios!");
-            return;
-        }
-
-        try {
-            BigDecimal preco = new BigDecimal(precoStr.replace(",", "."));
-            int maxFlavors = (int) spinnerMaxFlavors.getValue();
-
-            List<ItemCombo> itens = new ArrayList<>();
-            int contadorSelecionados = 0;
-
-            for (JCheckBox checkbox : checkboxesProdutos) {
-                if (checkbox.isSelected()) {
-                    contadorSelecionados++;
+        // Marca os checkboxes dos produtos que estão no cento
+        for (JCheckBox checkbox : checkboxesProdutos) {
+            for (ItemCombo item : cento.getItens()) {
+                String nomeProduto = item.getProduto().getNomeProduto();
+                if (checkbox.getText().startsWith(nomeProduto)) {
+                    checkbox.setSelected(true);
+                    break;
                 }
             }
+        }
+    }
 
-            if (contadorSelecionados > maxFlavors) {
-                JOptionPane.showMessageDialog(this, "Número de sabores excede o máximo!");
+    private void salvarCento() {
+        try {
+            String nome = campoNome.getText().trim();
+            if (nome.isBlank()) {
+                JOptionPane.showMessageDialog(this, "Nome é obrigatório!");
                 return;
             }
 
-            centoSalvo = new Cento(1, nome, itens, preco, maxFlavors);
+            BigDecimal preco = new BigDecimal(campoPreco.getText().replace(",", "."));
+            int maxSabores = (int) spinnerMaxFlavors.getValue();  // ← PEGA DO SPINNER
 
+
+            List<ItemCombo> itensSelecionados = new ArrayList<>();
+            for (int i = 0; i < checkboxesProdutos.size(); i++) {
+                JCheckBox checkbox = checkboxesProdutos.get(i);
+                if (checkbox.isSelected()) {
+                    Produto produto = produtosDisponiveis.get(i);
+                    itensSelecionados.add(new ItemCombo(produto, 100)); // Máximo 100
+                }
+            }
+
+            if (itensSelecionados.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Selecione pelo menos um produto!");
+                return;
+            }
+
+            int id = centoSalvo != null ? centoSalvo.getId() : (int) System.currentTimeMillis();
+
+
+            centoSalvo = new Cento(id, nome, itensSelecionados, preco, maxSabores);
+            salvou = true;
             dispose();
 
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Preço inválido!");
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Preencha os campos numéricos corretamente!");
         }
     }
 
@@ -175,6 +194,6 @@ public class DialogCento extends JDialog {
     }
 
     public Cento getCentoSalvo() {
-        return centoSalvo;
+        return salvou ? centoSalvo : null;
     }
 }

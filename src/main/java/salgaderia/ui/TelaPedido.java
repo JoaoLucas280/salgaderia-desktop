@@ -34,9 +34,6 @@ public class TelaPedido extends JPanel {
     private JComboBox<Cento> comboCentos;
     private JButton botaoMontarCento;
 
-    private JComboBox<Oferta> comboOfertas;
-    private JButton botaoMontarOferta;
-
     private DefaultListModel<String> modelListaItens;
     private JList<String> listaItens;
 
@@ -254,13 +251,14 @@ public class TelaPedido extends JPanel {
     }
 
     private void carregarProdutosPadrao() {
-        // ===== UNITÁRIOS =====
+        // Unitários padrão
         comboUnitarios.addItem(new Produto(1L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE, true));
         comboUnitarios.addItem(new Produto(2L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE, true));
         comboUnitarios.addItem(new Produto(3L, "Kibe", BigDecimal.valueOf(0.80), tipoProduto.UNIDADE, true));
         comboUnitarios.addItem(new Produto(4L, "Churro", BigDecimal.valueOf(0.90), tipoProduto.UNIDADE, true));
+    }
 
-        // ===== COMBOS =====
+    private void criarCombosPadrao() {
         List<ItemCombo> itensCombo1 = new ArrayList<>();
         itensCombo1.add(new ItemCombo(new Produto(101L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE), 30));
         itensCombo1.add(new ItemCombo(new Produto(102L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE), 30));
@@ -273,8 +271,9 @@ public class TelaPedido extends JPanel {
         itensCombo2.add(new ItemCombo(new Produto(106L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE), 15));
         itensCombo2.add(new ItemCombo(new Produto(107L, "Kibe", BigDecimal.valueOf(0.80), tipoProduto.UNIDADE), 15));
         comboCombos.addItem(new Combo(2, "Combo Amigo (50 salgados)", itensCombo2, BigDecimal.valueOf(35.00)));
+    }
 
-        // ===== CENTOS =====
+    private void criarCentosPadrao() {
         List<ItemCombo> itensCento = new ArrayList<>();
         itensCento.add(new ItemCombo(new Produto(201L, "Coxinha", BigDecimal.valueOf(0.60), tipoProduto.UNIDADE), 100));
         itensCento.add(new ItemCombo(new Produto(202L, "Risole", BigDecimal.valueOf(0.70), tipoProduto.UNIDADE), 100));
@@ -286,21 +285,32 @@ public class TelaPedido extends JPanel {
     private void carregarProdutos() {
         DadosDAO dao = new DadosDAO();
 
-
         List<Produto> unitarios = dao.carregarUnitarios();
         if (unitarios.isEmpty()) {
+
             carregarProdutosPadrao();
         } else {
             for (Produto p : unitarios) {
                 comboUnitarios.addItem(p);
             }
+        }
 
-            for (Combo c : dao.carregarCombos()) {
+        List<Combo> combos = dao.carregarCombos();
+        if (!combos.isEmpty()) {
+            for (Combo c : combos) {
                 comboCombos.addItem(c);
             }
-            for (Cento ce : dao.carregarCentos()) {
-                comboCentos.addItem(ce);
+        } else {
+
+            criarCombosPadrao();
+        }
+        List<Cento> centos = dao.carregarCentos();
+        if (!centos.isEmpty()) {
+            for (Cento c : centos) {
+                comboCentos.addItem(c);
             }
+        } else {
+            criarCentosPadrao();
         }
     }
 
@@ -496,4 +506,6 @@ public class TelaPedido extends JPanel {
             JOptionPane.showMessageDialog(this, "✅ Cento adicionado com " + itensEscolhidos.size() + " itens!");
         }
     }
+
+
 }

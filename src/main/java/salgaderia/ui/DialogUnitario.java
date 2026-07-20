@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 public class DialogUnitario extends JDialog {
 
     private Produto produtoSalvo;
+    private boolean salvou = false;  // ← ADICIONA ESSA VARIÁVEL
     private JTextField campoNome;
     private JTextField campoPreco;
     private JCheckBox checkboxAtivo;
@@ -97,8 +98,10 @@ public class DialogUnitario extends JDialog {
             BigDecimal preco = new BigDecimal(precoStr.replace(",", "."));
             boolean ativo = checkboxAtivo.isSelected();
 
-            produtoSalvo = new Produto(1L, nome, preco, tipoProduto.UNIDADE, ativo);
+            long id = System.currentTimeMillis();
 
+            produtoSalvo = new Produto(id, nome, preco, tipoProduto.UNIDADE, ativo);
+            salvou = true;
             dispose();
 
         } catch (NumberFormatException ex) {
@@ -113,6 +116,6 @@ public class DialogUnitario extends JDialog {
     }
 
     public Produto getProdutoSalvo() {
-        return produtoSalvo;
+        return salvou ? produtoSalvo : null;
     }
 }
