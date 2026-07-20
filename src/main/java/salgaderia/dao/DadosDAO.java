@@ -79,6 +79,28 @@ public class DadosDAO {
         }
     }
 
+    public List<Adicional> carregarAdicionais() {
+        try {
+            File arquivo = new File(pastaDados + "adicionais.json");
+            if (!arquivo.exists()) {
+                return new ArrayList<>();
+            }
+            return mapper.readValue(arquivo,
+                    mapper.getTypeFactory().constructCollectionType(List.class, Adicional.class));
+        } catch (IOException e) {
+            System.err.println("Erro ao carregar adicionais: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    public void salvarAdicionais(List<Adicional> adicionais) {
+        try {
+            mapper.writeValue(new File(pastaDados + "adicionais.json"), adicionais);
+        } catch (IOException e) {
+            System.err.println("Erro ao salvar adicionais: " + e.getMessage());
+        }
+    }
+
     public List<Combo> carregarCombos() {
         try {
             File arquivo = new File(pastaDados + "combos.json");
