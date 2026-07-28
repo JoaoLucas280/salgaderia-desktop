@@ -31,7 +31,6 @@ public class TelaPrincipal extends JFrame{
         TelaAdmin telaAdmin = new TelaAdmin(this);
         tabbedPane.addTab("🔧 Admin", telaAdmin);
 
-        // Placeholders
         JPanel painelEmBreve = new JPanel();
         painelEmBreve.add(new JLabel("💰 Finanças - Em breve!"));
         tabbedPane.addTab("💰 Finanças", painelEmBreve);
@@ -43,7 +42,7 @@ public class TelaPrincipal extends JFrame{
         add(tabbedPane, BorderLayout.CENTER);
 
         JPanel painelRodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        JLabel labelVersao = new JLabel("v1.0 - Salgaderia Manager");
+        JLabel labelVersao = new JLabel("v1.0 - Sistema de Gerenciamento de Salgaderia");
         labelVersao.setFont(new Font("Arial", Font.PLAIN, 11));
         labelVersao.setForeground(Color.GRAY);
         painelRodape.add(labelVersao);

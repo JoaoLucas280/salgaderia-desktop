@@ -33,7 +33,7 @@ public class TelaAdmin extends JPanel {
         this.combos = dao.carregarCombos();
         this.centos = dao.carregarCentos();
         this.unitarios = dao.carregarUnitarios();
-        this.adicionais = new ArrayList<>();
+        this.adicionais = dao.carregarAdicionais();
 
         if (combos.isEmpty() && centos.isEmpty() && unitarios.isEmpty()) {
             carregarDadosPadroes();
@@ -44,7 +44,7 @@ public class TelaAdmin extends JPanel {
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout(10, 10));  // ← setLayout agora é do JPanel
+        setLayout(new BorderLayout(10, 10));
 
         JTabbedPane abas = new JTabbedPane();
         abas.addTab("🧩 Combos", criarAbaCombo());
@@ -55,7 +55,6 @@ public class TelaAdmin extends JPanel {
         add(abas, BorderLayout.CENTER);
 
         JPanel painelRodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        // Remove o botão Fechar porque agora é um painel
         add(painelRodape, BorderLayout.SOUTH);
     }
 
