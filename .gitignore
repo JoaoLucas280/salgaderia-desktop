@@ -3,7 +3,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .kotlin
-dados
+salgaderia.db
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
