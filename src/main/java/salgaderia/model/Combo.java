@@ -1,10 +1,15 @@
 package salgaderia.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class Combo {
     private int id;
     private String nome;
@@ -14,16 +19,19 @@ public class Combo {
     private int quantidadeMaximaDeFlavors;
     private BigDecimal precoOverride;
 
-    // ★ NOVOS ATRIBUTOS PARA ADICIONAIS ★
-    private List<Adicional> adicionaisElegiveis;
-    private int quantidadeAdicionaisPermitidos; // 0 = nenhum, 1 = um incluso, etc.
+    // ★ AGORA SALVA COMO STRING ★
+    private String adicionaisElegiveisIds; // ex: "1,2,3"
+    private int quantidadeAdicionaisPermitidos;
+
+    // Lista temporária para uso na interface (NÃO é salva no JSON)
+    private transient List<Adicional> adicionaisElegiveisCache;
 
     public Combo() {
-        this.adicionaisElegiveis = new ArrayList<>();
+        this.adicionaisElegiveisIds = "";
         this.quantidadeAdicionaisPermitidos = 0;
+        this.adicionaisElegiveisCache = new ArrayList<>();
     }
 
-    // Construtor original (sem adicionais) - mantido para compatibilidade
     public Combo(int id, String nome, List<ItemCombo> itens, BigDecimal precoTotal) {
         this.id = id;
         this.nome = nome;
@@ -31,11 +39,11 @@ public class Combo {
         this.precoTotal = precoTotal;
         this.quantidadeMaximaDeItems = 100;
         this.quantidadeMaximaDeFlavors = itens != null ? itens.size() : 4;
-        this.adicionaisElegiveis = new ArrayList<>();
+        this.adicionaisElegiveisIds = "";
         this.quantidadeAdicionaisPermitidos = 0;
+        this.adicionaisElegiveisCache = new ArrayList<>();
     }
 
-    // Construtor completo (com adicionais)
     public Combo(int id, String nome, List<ItemCombo> itens, BigDecimal precoTotal,
                  int quantidadeMaximaDeItems, int quantidadeMaximaDeFlavors,
                  List<Adicional> adicionaisElegiveis, int quantidadeAdicionaisPermitidos) {
@@ -45,11 +53,14 @@ public class Combo {
         this.precoTotal = precoTotal;
         this.quantidadeMaximaDeItems = quantidadeMaximaDeItems;
         this.quantidadeMaximaDeFlavors = quantidadeMaximaDeFlavors;
-        this.adicionaisElegiveis = adicionaisElegiveis != null ? adicionaisElegiveis : new ArrayList<>();
         this.quantidadeAdicionaisPermitidos = quantidadeAdicionaisPermitidos;
+        this.adicionaisElegiveisCache = adicionaisElegiveis != null ? adicionaisElegiveis : new ArrayList<>();
+        // ★ CONVERTE PARA STRING ★
+        this.adicionaisElegiveisIds = this.adicionaisElegiveisCache.stream()
+                .map(a -> String.valueOf(a.getId()))
+                .collect(Collectors.joining(","));
     }
 
-    // Construtor simplificado (com adicionais, sem maxItems e maxFlavors)
     public Combo(int id, String nome, List<ItemCombo> itens, BigDecimal precoTotal,
                  List<Adicional> adicionaisElegiveis, int quantidadeAdicionaisPermitidos) {
         this(id, nome, itens, precoTotal, 100, itens != null ? itens.size() : 4,
@@ -87,20 +98,54 @@ public class Combo {
     public BigDecimal getPrecoOverride() { return precoOverride; }
     public void setPrecoOverride(BigDecimal precoOverride) { this.precoOverride = precoOverride; }
 
-    // ★ GETTERS E SETTERS DOS ADICIONAIS ★
-    public List<Adicional> getAdicionaisElegiveis() { return adicionaisElegiveis; }
-    public void setAdicionaisElegiveis(List<Adicional> adicionaisElegiveis) {
-        this.adicionaisElegiveis = adicionaisElegiveis != null ? adicionaisElegiveis : new ArrayList<>();
-    }
-
     public int getQuantidadeAdicionaisPermitidos() { return quantidadeAdicionaisPermitidos; }
     public void setQuantidadeAdicionaisPermitidos(int quantidadeAdicionaisPermitidos) {
         this.quantidadeAdicionaisPermitidos = quantidadeAdicionaisPermitidos;
     }
 
-    // ★ MÉTODO AUXILIAR ★
+    // ★ GETTER E SETTER DA STRING (PARA O JACKSON) ★
+    @JsonProperty
+    public String getAdicionaisElegiveisIds() {
+        return adicionaisElegiveisIds != null ? adicionaisElegiveisIds : "";
+    }
+
+    @JsonProperty
+    public void setAdicionaisElegiveisIds(String adicionaisElegiveisIds) {
+        this.adicionaisElegiveisIds = adicionaisElegiveisIds != null ? adicionaisElegiveisIds : "";
+    }
+
+    // ★ GETTER QUE RETORNA A LISTA DE ADICIONAIS (USA O CACHE) ★
+    public List<Adicional> getAdicionaisElegiveis() {
+        return adicionaisElegiveisCache != null ? adicionaisElegiveisCache : new ArrayList<>();
+    }
+
+    public void setAdicionaisElegiveis(List<Adicional> adicionaisElegiveis) {
+        this.adicionaisElegiveisCache = adicionaisElegiveis != null ? adicionaisElegiveis : new ArrayList<>();
+        // ★ ATUALIZA A STRING QUANDO A LISTA FOR SETADA ★
+        this.adicionaisElegiveisIds = this.adicionaisElegiveisCache.stream()
+                .map(a -> String.valueOf(a.getId()))
+                .collect(Collectors.joining(","));
+    }
+
+    // ★ MÉTODO PARA CARREGAR OS ADICIONAIS A PARTIR DOS IDS ★
+    public void carregarAdicionaisDoIds(List<Adicional> todosAdicionais) {
+        if (adicionaisElegiveisIds == null || adicionaisElegiveisIds.isEmpty()) {
+            this.adicionaisElegiveisCache = new ArrayList<>();
+            return;
+        }
+
+        List<Integer> ids = Arrays.stream(adicionaisElegiveisIds.split(","))
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+
+        this.adicionaisElegiveisCache = todosAdicionais.stream()
+                .filter(a -> ids.contains(a.getId()))
+                .collect(Collectors.toList());
+    }
+
     public boolean temAdicionaisElegiveis() {
-        return adicionaisElegiveis != null && !adicionaisElegiveis.isEmpty();
+        return adicionaisElegiveisCache != null && !adicionaisElegiveisCache.isEmpty();
     }
 
     @Override

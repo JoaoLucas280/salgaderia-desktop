@@ -2,7 +2,6 @@ package salgaderia.dao;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import salgaderia.model.*;
@@ -15,70 +14,47 @@ import java.util.List;
 public class DadosDAO {
 
     private final ObjectMapper mapper;
-
     private final String pastaDados;
-
     private final String arquivoPedidos;
-
     private final String arquivoFinanceiro;
 
     public DadosDAO() {
         this.mapper = new ObjectMapper();
-
         mapper.registerModule(new JavaTimeModule());
-
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
-
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         this.pastaDados = System.getProperty("user.dir") + "/dados/";
-
         this.arquivoPedidos = this.pastaDados + "pedidos.json";
-
         this.arquivoFinanceiro = this.pastaDados + "financeiro.json";
 
         criarPastaSeNaoExistir();
     }
 
+    // ===== PEDIDOS =====
     public List<Pedido> carregarPedidos() {
         try {
             File arquivo = new File(arquivoPedidos);
-
             if (!arquivo.exists()) {
                 return new ArrayList<>();
             }
-
-            List<Pedido> pedidos = mapper.readValue(arquivo, mapper.getTypeFactory().constructCollectionType(List.class, Pedido.class));
-            return new ArrayList<>(pedidos);
-
+            return mapper.readValue(arquivo,
+                    mapper.getTypeFactory().constructCollectionType(List.class, Pedido.class));
         } catch (IOException e) {
             System.err.println("Erro ao carregar pedidos: " + e.getMessage());
-            e.printStackTrace();
             return new ArrayList<>();
         }
     }
 
     public void salvarPedidos(List<Pedido> pedidos) {
         try {
-
             mapper.writeValue(new File(arquivoPedidos), pedidos);
-
         } catch (IOException e) {
             System.err.println("Erro ao salvar pedidos: " + e.getMessage());
         }
     }
 
-    private void criarPastaSeNaoExistir() {
-        File pasta = new File(pastaDados);
-
-        if (!pasta.exists()) {
-            boolean criada = pasta.mkdirs();
-            if (criada) {
-                System.out.println("Pasta criada com sucesso: " + pastaDados);
-            }
-        }
-    }
-
+    // ===== ADICIONAIS =====
     public List<Adicional> carregarAdicionais() {
         try {
             File arquivo = new File(pastaDados + "adicionais.json");
@@ -101,14 +77,23 @@ public class DadosDAO {
         }
     }
 
+    // ===== COMBOS =====
     public List<Combo> carregarCombos() {
         try {
             File arquivo = new File(pastaDados + "combos.json");
             if (!arquivo.exists()) {
                 return new ArrayList<>();
             }
-            return mapper.readValue(arquivo,
+            List<Combo> combos = mapper.readValue(arquivo,
                     mapper.getTypeFactory().constructCollectionType(List.class, Combo.class));
+
+            // ★ CARREGA OS ADICIONAIS DE CADA COMBO ★
+            List<Adicional> todosAdicionais = carregarAdicionais();
+            for (Combo c : combos) {
+                c.carregarAdicionaisDoIds(todosAdicionais);
+            }
+
+            return combos;
         } catch (IOException e) {
             System.err.println("Erro ao carregar combos: " + e.getMessage());
             return new ArrayList<>();
@@ -123,7 +108,7 @@ public class DadosDAO {
         }
     }
 
-
+    // ===== CENTOS =====
     public List<Cento> carregarCentos() {
         try {
             File arquivo = new File(pastaDados + "centos.json");
@@ -146,6 +131,7 @@ public class DadosDAO {
         }
     }
 
+    // ===== UNITÁRIOS =====
     public List<Produto> carregarUnitarios() {
         try {
             File arquivo = new File(pastaDados + "unitarios.json");
@@ -165,6 +151,16 @@ public class DadosDAO {
             mapper.writeValue(new File(pastaDados + "unitarios.json"), unitarios);
         } catch (IOException e) {
             System.err.println("Erro ao salvar unitários: " + e.getMessage());
+        }
+    }
+
+    private void criarPastaSeNaoExistir() {
+        File pasta = new File(pastaDados);
+        if (!pasta.exists()) {
+            boolean criada = pasta.mkdirs();
+            if (criada) {
+                System.out.println("Pasta criada com sucesso: " + pastaDados);
+            }
         }
     }
 }
