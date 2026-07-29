@@ -1,166 +1,81 @@
 package salgaderia.dao;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import salgaderia.model.*;
+import salgaderia.model.enums.tipoProduto;
 
-import java.io.File;
-import java.io.IOException;
+import java.sql.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DadosDAO {
 
-    private final ObjectMapper mapper;
-    private final String pastaDados;
-    private final String arquivoPedidos;
-    private final String arquivoFinanceiro;
+    public List<Produto> carregarProdutos() {
+        List<Produto> produtos = new ArrayList<>();
+        String sql = "SELECT * FROM produtos";
 
-    public DadosDAO() {
-        this.mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        try (Connection conn = Database.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
-        this.pastaDados = System.getProperty("user.dir") + "/dados/";
-        this.arquivoPedidos = this.pastaDados + "pedidos.json";
-        this.arquivoFinanceiro = this.pastaDados + "financeiro.json";
-
-        criarPastaSeNaoExistir();
-    }
-
-    // ===== PEDIDOS =====
-    public List<Pedido> carregarPedidos() {
-        try {
-            File arquivo = new File(arquivoPedidos);
-            if (!arquivo.exists()) {
-                return new ArrayList<>();
+            while (rs.next()) {
+                Produto p = new Produto();
+                p.setId(rs.getLong("id"));
+                p.setNomeProduto(rs.getString("nome"));
+                p.setPrecoUnitario(BigDecimal.valueOf(rs.getDouble("preco_unitario")));
+                p.setTipoProduto(tipoProduto.valueOf(rs.getString("tipo_produto")));
+                p.setAtivo(rs.getInt("ativo") == 1);
+                produtos.add(p);
             }
-            return mapper.readValue(arquivo,
-                    mapper.getTypeFactory().constructCollectionType(List.class, Pedido.class));
-        } catch (IOException e) {
-            System.err.println("Erro ao carregar pedidos: " + e.getMessage());
-            return new ArrayList<>();
+        } catch (SQLException e) {
+            System.err.println("Erro ao carregar produtos: " + e.getMessage());
+        }
+        return produtos;
+    }
+
+    public void salvarProduto(Produto p) {
+        String sql = "INSERT INTO produtos (nome, preco_unitario, tipo_produto, ativo) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = Database.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, p.getNomeProduto());
+            pstmt.setDouble(2, p.getPrecoUnitario().doubleValue());
+            pstmt.setString(3, p.getTipoProduto().name());
+            pstmt.setInt(4, p.isAtivo() ? 1 : 0);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Erro ao salvar produto: " + e.getMessage());
         }
     }
 
-    public void salvarPedidos(List<Pedido> pedidos) {
-        try {
-            mapper.writeValue(new File(arquivoPedidos), pedidos);
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar pedidos: " + e.getMessage());
+    public void atualizarProduto(Produto p) {
+        String sql = "UPDATE produtos SET nome = ?, preco_unitario = ?, tipo_produto = ?, ativo = ? WHERE id = ?";
+
+        try (Connection conn = Database.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, p.getNomeProduto());
+            pstmt.setDouble(2, p.getPrecoUnitario().doubleValue());
+            pstmt.setString(3, p.getTipoProduto().name());
+            pstmt.setInt(4, p.isAtivo() ? 1 : 0);
+            pstmt.setLong(5, p.getId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Erro ao atualizar produto: " + e.getMessage());
         }
     }
 
-    // ===== ADICIONAIS =====
-    public List<Adicional> carregarAdicionais() {
-        try {
-            File arquivo = new File(pastaDados + "adicionais.json");
-            if (!arquivo.exists()) {
-                return new ArrayList<>();
-            }
-            return mapper.readValue(arquivo,
-                    mapper.getTypeFactory().constructCollectionType(List.class, Adicional.class));
-        } catch (IOException e) {
-            System.err.println("Erro ao carregar adicionais: " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
+    public void deletarProduto(long id) {
+        String sql = "DELETE FROM produtos WHERE id = ?";
 
-    public void salvarAdicionais(List<Adicional> adicionais) {
-        try {
-            mapper.writeValue(new File(pastaDados + "adicionais.json"), adicionais);
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar adicionais: " + e.getMessage());
-        }
-    }
+        try (Connection conn = Database.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-    // ===== COMBOS =====
-    public List<Combo> carregarCombos() {
-        try {
-            File arquivo = new File(pastaDados + "combos.json");
-            if (!arquivo.exists()) {
-                return new ArrayList<>();
-            }
-            List<Combo> combos = mapper.readValue(arquivo,
-                    mapper.getTypeFactory().constructCollectionType(List.class, Combo.class));
-
-            // ★ CARREGA OS ADICIONAIS DE CADA COMBO ★
-            List<Adicional> todosAdicionais = carregarAdicionais();
-            for (Combo c : combos) {
-                c.carregarAdicionaisDoIds(todosAdicionais);
-            }
-
-            return combos;
-        } catch (IOException e) {
-            System.err.println("Erro ao carregar combos: " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
-
-    public void salvarCombos(List<Combo> combos) {
-        try {
-            mapper.writeValue(new File(pastaDados + "combos.json"), combos);
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar combos: " + e.getMessage());
-        }
-    }
-
-    // ===== CENTOS =====
-    public List<Cento> carregarCentos() {
-        try {
-            File arquivo = new File(pastaDados + "centos.json");
-            if (!arquivo.exists()) {
-                return new ArrayList<>();
-            }
-            return mapper.readValue(arquivo,
-                    mapper.getTypeFactory().constructCollectionType(List.class, Cento.class));
-        } catch (IOException e) {
-            System.err.println("Erro ao carregar centos: " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
-
-    public void salvarCentos(List<Cento> centos) {
-        try {
-            mapper.writeValue(new File(pastaDados + "centos.json"), centos);
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar centos: " + e.getMessage());
-        }
-    }
-
-    // ===== UNITÁRIOS =====
-    public List<Produto> carregarUnitarios() {
-        try {
-            File arquivo = new File(pastaDados + "unitarios.json");
-            if (!arquivo.exists()) {
-                return new ArrayList<>();
-            }
-            return mapper.readValue(arquivo,
-                    mapper.getTypeFactory().constructCollectionType(List.class, Produto.class));
-        } catch (IOException e) {
-            System.err.println("Erro ao carregar unitários: " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
-
-    public void salvarUnitarios(List<Produto> unitarios) {
-        try {
-            mapper.writeValue(new File(pastaDados + "unitarios.json"), unitarios);
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar unitários: " + e.getMessage());
-        }
-    }
-
-    private void criarPastaSeNaoExistir() {
-        File pasta = new File(pastaDados);
-        if (!pasta.exists()) {
-            boolean criada = pasta.mkdirs();
-            if (criada) {
-                System.out.println("Pasta criada com sucesso: " + pastaDados);
-            }
+            pstmt.setLong(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Erro ao deletar produto: " + e.getMessage());
         }
     }
 }
