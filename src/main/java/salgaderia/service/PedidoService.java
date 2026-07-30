@@ -1,21 +1,27 @@
 package salgaderia.service;
 
 import salgaderia.dao.DadosDAO;
-import salgaderia.model.ItemPedido;
 import salgaderia.model.Pedido;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public class PedidoService {
 
-    private final DadosDAO dao = new DadosDAO();
+    private DadosDAO dao = DadosDAO.getInstance();
 
     public void salvarPedido(Pedido pedido) {
+
         validarPedido(pedido);
+
+
         pedido.setTotal(calcularTotal(pedido));
-        var pedidos = dao.carregarPedidos();
-        pedidos.add(pedido);
-        dao.salvarPedidos(pedidos);
+
+
+        pedido.setDataHora(LocalDateTime.now());
+
+
+        dao.salvarPedido(pedido);
     }
 
     public void validarPedido(Pedido pedido) {
@@ -31,8 +37,8 @@ public class PedidoService {
         var subtotal = pedido.getItens() != null ?
                 pedido.getItens().stream()
                         .map(item -> {
-                            BigDecimal preco = item.getPrecoUnitario() != null ? 
-                                item.getPrecoUnitario() : BigDecimal.ZERO;
+                            BigDecimal preco = item.getPrecoUnitario() != null ?
+                                    item.getPrecoUnitario() : BigDecimal.ZERO;
                             return preco.multiply(BigDecimal.valueOf(item.getQuantidade()));
                         })
                         .reduce(BigDecimal.ZERO, BigDecimal::add)
@@ -47,7 +53,7 @@ public class PedidoService {
 
     public void validarCombo(Pedido pedido) {
         int total = pedido.getItens().stream()
-                .mapToInt(ItemPedido::getQuantidade)
+                .mapToInt(item -> item.getQuantidade())
                 .sum();
 
         int maximo = 100;

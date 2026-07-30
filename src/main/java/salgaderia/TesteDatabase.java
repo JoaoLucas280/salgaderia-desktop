@@ -16,7 +16,6 @@ public class TesteDatabase {
                 System.out.println("Tabela 'produtos' existe!");
             }
 
-            Database.close();
         } catch (SQLException e) {
             System.err.println(" Erro: " + e.getMessage());
         }
