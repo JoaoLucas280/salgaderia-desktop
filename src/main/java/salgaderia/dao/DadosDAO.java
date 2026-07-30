@@ -156,7 +156,103 @@ public class DadosDAO {
     }
 
     public List<Pedido> carregarPedidos() {
-        // Vamos implementar depois, quando for fazer a TelaDashboard
         return new ArrayList<>();
+    }
+
+
+    // ==========================================
+// MÉTODOS PARA ADICIONAIS
+// ==========================================
+
+    public List<Adicional> carregarAdicionais() {
+        List<Adicional> adicionais = new ArrayList<>();
+        String sql = "SELECT * FROM adicionais";
+
+        try {
+            Connection conn = Database.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                Adicional a = new Adicional();
+                a.setId(rs.getInt("id"));
+                a.setNome(rs.getString("nome"));
+                int centavos = rs.getInt("preco");
+                a.setPreco(BigDecimal.valueOf(centavos).divide(BigDecimal.valueOf(100)));
+                adicionais.add(a);
+            }
+
+            rs.close();
+            stmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("Erro ao carregar adicionais: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return adicionais;
+    }
+
+    public void salvarAdicional(Adicional a) {
+        String sql = "INSERT INTO adicionais (nome, preco) VALUES (?, ?)";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+
+            pstmt.setString(1, a.getNome());
+            int centavos = a.getPreco().multiply(BigDecimal.valueOf(100)).intValue();
+            pstmt.setInt(2, centavos);
+
+            pstmt.executeUpdate();
+            pstmt.close();
+
+            System.out.println("Adicional salvo: " + a.getNome());
+
+        } catch (SQLException e) {
+            System.err.println("Erro ao salvar adicional: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void atualizarAdicional(Adicional a) {
+        String sql = "UPDATE adicionais SET nome = ?, preco = ? WHERE id = ?";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+
+            pstmt.setString(1, a.getNome());
+            int centavos = a.getPreco().multiply(BigDecimal.valueOf(100)).intValue();
+            pstmt.setInt(2, centavos);
+            pstmt.setInt(3, a.getId());
+
+            pstmt.executeUpdate();
+            pstmt.close();
+
+            System.out.println("Adicional atualizado: " + a.getNome());
+
+        } catch (SQLException e) {
+            System.err.println("Erro ao atualizar adicional: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void deletarAdicional(int id) {
+        String sql = "DELETE FROM adicionais WHERE id = ?";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+            pstmt.close();
+
+            System.out.println("Adicional deletado: ID " + id);
+
+        } catch (SQLException e) {
+            System.err.println("Erro ao deletar adicional: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
