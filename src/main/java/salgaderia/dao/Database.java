@@ -4,16 +4,20 @@ import java.sql.*;
 
 public class Database {
     private static final String URL = "jdbc:sqlite:salgaderia.db";
-    private static Connection connection;
+    private static Connection connection = null;
 
     public static Connection getConnection() {
-        if (connection == null) {
-            try {
+        try {
+
+            if (connection == null || connection.isClosed()) {
+                System.out.println("🔍 Abrindo conexão com o banco...");
                 connection = DriverManager.getConnection(URL);
                 criarTabelas();
-            } catch (SQLException e) {
-                e.printStackTrace();
+                System.out.println(" Conexão estabelecida com sucesso!");
             }
+        } catch (SQLException e) {
+            System.err.println(" Erro ao conectar: " + e.getMessage());
+            e.printStackTrace();
         }
         return connection;
     }
@@ -137,17 +141,21 @@ public class Database {
             stmt.execute(sqlPedidos);
             stmt.execute(sqlPedidoItens);
             stmt.execute(sqlLancamentos);
-            System.out.println("Tabelas criadas/verificadas com sucesso!");
+            System.out.println("✅ Tabelas verificadas/criadas com sucesso!");
         } catch (SQLException e) {
-            System.err.println("Erro ao criar tabelas: " + e.getMessage());
+            System.err.println(" Erro ao criar tabelas: " + e.getMessage());
         }
     }
 
-    public static void close() {
+
+    public static void closeConnection() {
         try {
-            if (connection != null) connection.close();
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+                System.out.println(" Conexão fechada.");
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(" Erro ao fechar conexão: " + e.getMessage());
         }
     }
 }

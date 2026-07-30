@@ -77,9 +77,17 @@ public class TelaAdmin extends JPanel {
         add(painelBotoes, BorderLayout.NORTH);
     }
 
-    private void abrirDialogUnitario(Produto produto) {
-        DialogUnitario dialog = new DialogUnitario(parentFrame, produto);
+    private void abrirDialogUnitario(Produto produtoExistente) {
+
+        if (produtoExistente != null) {
+            System.out.println("Abrindo Dialog para editar: " + produtoExistente.getNomeProduto());
+        } else {
+            System.out.println("Abrindo Dialog para novo produto");
+        }
+
+        DialogUnitario dialog = new DialogUnitario(parentFrame, produtoExistente);
         dialog.setVisible(true);
+
         atualizarTabela();
     }
 
@@ -87,6 +95,9 @@ public class TelaAdmin extends JPanel {
         int linha = tabela.getSelectedRow();
         if (linha >= 0) {
             Produto produto = produtos.get(linha);
+
+            System.out.println("📝 Editando produto: " + produto.getNomeProduto() + " (ID: " + produto.getId() + ")");
+
             abrirDialogUnitario(produto);
         } else {
             JOptionPane.showMessageDialog(this, "Selecione um produto!");
@@ -96,15 +107,25 @@ public class TelaAdmin extends JPanel {
     private void deletarProduto() {
         int linha = tabela.getSelectedRow();
         if (linha >= 0) {
-            int confirm = JOptionPane.showConfirmDialog(this,
-                    "Deletar este produto?", "Confirmar", JOptionPane.YES_NO_OPTION);
+            Produto produto = produtos.get(linha);
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Tem certeza que deseja deletar o produto \"" + produto.getNomeProduto() + "\"?",
+                    "Confirmar exclusão",
+                    JOptionPane.YES_NO_OPTION
+            );
+
             if (confirm == JOptionPane.YES_OPTION) {
-                Produto produto = produtos.get(linha);
+
                 dao.deletarProduto(produto.getId());
+
                 atualizarTabela();
+
+                JOptionPane.showMessageDialog(this, "✅ Produto deletado com sucesso!");
             }
         } else {
-            JOptionPane.showMessageDialog(this, "Selecione um produto!");
+            JOptionPane.showMessageDialog(this, "Selecione um produto para deletar!");
         }
     }
 
