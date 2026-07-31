@@ -2,8 +2,10 @@ package salgaderia.ui;
 
 import salgaderia.dao.DadosDAO;
 import salgaderia.model.Adicional;
+import salgaderia.model.Combo;
 import salgaderia.model.Produto;
 import salgaderia.ui.dialogs.DialogAdicional;
+import salgaderia.ui.dialogs.DialogCombo;
 import salgaderia.ui.dialogs.DialogUnitario;
 
 import javax.swing.*;
@@ -16,14 +18,18 @@ public class TelaAdmin extends JPanel {
     private JFrame parentFrame;
     private DadosDAO dao;
 
-    // Tabela de Unitários
+
     private JTable tabelaUnitarios;
     private DefaultTableModel modeloTabelaUnitarios;
     private List<Produto> produtos;
 
-    // Tabela de Adicionais
+
     private JTable tabelaAdicionais;
     private DefaultTableModel modeloTabelaAdicionais;
+
+    private JTable tabelaCombos;
+    private DefaultTableModel modeloTabelaCombos;
+    private List<Combo> combos;
 
     public TelaAdmin(JFrame parent) {
         this.parentFrame = parent;
@@ -37,13 +43,12 @@ public class TelaAdmin extends JPanel {
         JTabbedPane abas = new JTabbedPane();
         abas.addTab("🥒 Unitários", criarAbaUnitarios());
         abas.addTab("🥤 Adicionais", criarAbaAdicionais());
+        abas.addTab("🧩 Combos", criarAbaCombos());
 
         add(abas, BorderLayout.CENTER);
     }
 
-    // ==========================================
     // ABA DE UNITÁRIOS
-    // ==========================================
 
     private JPanel criarAbaUnitarios() {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
@@ -141,9 +146,7 @@ public class TelaAdmin extends JPanel {
         }
     }
 
-    // ==========================================
     // ABA DE ADICIONAIS
-    // ==========================================
 
     private JPanel criarAbaAdicionais() {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
@@ -224,6 +227,104 @@ public class TelaAdmin extends JPanel {
         painel.add(painelBotoes, BorderLayout.NORTH);
 
         return painel;
+    }
+
+    // ABA DE COMBOS
+
+
+    private JPanel criarAbaCombos() {
+        JPanel painel = new JPanel(new BorderLayout(10, 10));
+        painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        DefaultTableModel modeloTabela = new DefaultTableModel(
+                new String[]{"ID", "Nome", "Preço", "Max Itens", "Max Sabores"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        List<Combo> combos = dao.carregarCombos();
+        for (Combo c : combos) {
+            modeloTabela.addRow(new Object[]{
+                    c.getId(),
+                    c.getNome(),
+                    String.format("R$ %.2f", c.getPrecoTotal()),
+                    c.getQuantidadeMaximaDeItems(),
+                    c.getQuantidadeMaximaDeFlavors()
+            });
+        }
+
+        JTable tabela = new JTable(modeloTabela);
+        tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane scroll = new JScrollPane(tabela);
+        painel.add(scroll, BorderLayout.CENTER);
+
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
+        JButton botaoNovo = new JButton("➕ Novo Combo");
+        botaoNovo.addActionListener(e -> {
+            DialogCombo dialog = new DialogCombo(parentFrame, null);
+            dialog.setVisible(true);
+            atualizarTabelaCombos(modeloTabela);
+        });
+        painelBotoes.add(botaoNovo);
+
+        JButton botaoEditar = new JButton("✏️ Editar");
+        botaoEditar.addActionListener(e -> {
+            int linha = tabela.getSelectedRow();
+            if (linha >= 0) {
+                int id = (int) modeloTabela.getValueAt(linha, 0);
+                Combo c = dao.carregarCombos().stream()
+                        .filter(combo -> combo.getId() == id)
+                        .findFirst()
+                        .orElse(null);
+                if (c != null) {
+                    DialogCombo dialog = new DialogCombo(parentFrame, c);
+                    dialog.setVisible(true);
+                    atualizarTabelaCombos(modeloTabela);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um combo!");
+            }
+        });
+        painelBotoes.add(botaoEditar);
+
+        JButton botaoDeletar = new JButton("🗑️ Deletar");
+        botaoDeletar.addActionListener(e -> {
+            int linha = tabela.getSelectedRow();
+            if (linha >= 0) {
+                int confirm = JOptionPane.showConfirmDialog(this,
+                        "Deletar este combo?", "Confirmar", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    int id = (int) modeloTabela.getValueAt(linha, 0);
+                    dao.deletarCombo(id);
+                    atualizarTabelaCombos(modeloTabela);
+                    JOptionPane.showMessageDialog(this, "✅ Combo deletado!");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um combo!");
+            }
+        });
+        painelBotoes.add(botaoDeletar);
+
+        painel.add(painelBotoes, BorderLayout.NORTH);
+
+        return painel;
+    }
+
+    private void atualizarTabelaCombos(DefaultTableModel modelo) {
+        modelo.setRowCount(0);
+        List<Combo> combos = dao.carregarCombos();
+        for (Combo c : combos) {
+            modelo.addRow(new Object[]{
+                    c.getId(),
+                    c.getNome(),
+                    String.format("R$ %.2f", c.getPrecoTotal()),
+                    c.getQuantidadeMaximaDeItems(),
+                    c.getQuantidadeMaximaDeFlavors()
+            });
+        }
     }
 
     private void atualizarTabelaAdicionais() {
