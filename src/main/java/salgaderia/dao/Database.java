@@ -53,13 +53,12 @@ public class Database {
         """;
 
         String sqlComboItens = """
-            CREATE TABLE IF NOT EXISTS combo_itens (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                combo_id INTEGER NOT NULL,
-                produto_id INTEGER NOT NULL,
-                quantidade_maxima INTEGER NOT NULL,
-                FOREIGN KEY (combo_id) REFERENCES combos(id) ON DELETE CASCADE,
-                FOREIGN KEY (produto_id) REFERENCES produtos(id)
+           CREATE TABLE IF NOT EXISTS combo_itens (
+             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            combo_id INTEGER NOT NULL,
+            produto_id INTEGER NOT NULL,
+            FOREIGN KEY (combo_id) REFERENCES combos(id) ON DELETE CASCADE,
+            FOREIGN KEY (produto_id) REFERENCES produtos(id)
             )
         """;
 

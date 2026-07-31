@@ -19,11 +19,11 @@ public class Combo {
     private int quantidadeMaximaDeFlavors;
     private BigDecimal precoOverride;
 
-    // ★ AGORA SALVA COMO STRING ★
+
     private String adicionaisElegiveisIds; // ex: "1,2,3"
     private int quantidadeAdicionaisPermitidos;
 
-    // Lista temporária para uso na interface (NÃO é salva no JSON)
+
     private transient List<Adicional> adicionaisElegiveisCache;
 
     public Combo() {
@@ -103,7 +103,7 @@ public class Combo {
         this.quantidadeAdicionaisPermitidos = quantidadeAdicionaisPermitidos;
     }
 
-    // ★ GETTER E SETTER DA STRING (PARA O JACKSON) ★
+
     @JsonProperty
     public String getAdicionaisElegiveisIds() {
         return adicionaisElegiveisIds != null ? adicionaisElegiveisIds : "";
@@ -114,20 +114,20 @@ public class Combo {
         this.adicionaisElegiveisIds = adicionaisElegiveisIds != null ? adicionaisElegiveisIds : "";
     }
 
-    // ★ GETTER QUE RETORNA A LISTA DE ADICIONAIS (USA O CACHE) ★
+
     public List<Adicional> getAdicionaisElegiveis() {
         return adicionaisElegiveisCache != null ? adicionaisElegiveisCache : new ArrayList<>();
     }
 
     public void setAdicionaisElegiveis(List<Adicional> adicionaisElegiveis) {
         this.adicionaisElegiveisCache = adicionaisElegiveis != null ? adicionaisElegiveis : new ArrayList<>();
-        // ★ ATUALIZA A STRING QUANDO A LISTA FOR SETADA ★
+
         this.adicionaisElegiveisIds = this.adicionaisElegiveisCache.stream()
                 .map(a -> String.valueOf(a.getId()))
                 .collect(Collectors.joining(","));
     }
 
-    // ★ MÉTODO PARA CARREGAR OS ADICIONAIS A PARTIR DOS IDS ★
+
     public void carregarAdicionaisDoIds(List<Adicional> todosAdicionais) {
         if (adicionaisElegiveisIds == null || adicionaisElegiveisIds.isEmpty()) {
             this.adicionaisElegiveisCache = new ArrayList<>();
