@@ -2,9 +2,11 @@ package salgaderia.ui;
 
 import salgaderia.dao.DadosDAO;
 import salgaderia.model.Adicional;
+import salgaderia.model.Cento;
 import salgaderia.model.Combo;
 import salgaderia.model.Produto;
 import salgaderia.ui.dialogs.DialogAdicional;
+import salgaderia.ui.dialogs.DialogCento;
 import salgaderia.ui.dialogs.DialogCombo;
 import salgaderia.ui.dialogs.DialogUnitario;
 
@@ -44,6 +46,7 @@ public class TelaAdmin extends JPanel {
         abas.addTab("🥒 Unitários", criarAbaUnitarios());
         abas.addTab("🥤 Adicionais", criarAbaAdicionais());
         abas.addTab("🧩 Combos", criarAbaCombos());
+        abas.addTab("📦 Centos", criarAbaCentos());
 
         add(abas, BorderLayout.CENTER);
     }
@@ -335,6 +338,100 @@ public class TelaAdmin extends JPanel {
                     a.getId(),
                     a.getNome(),
                     String.format("R$ %.2f", a.getPreco())
+            });
+        }
+    }
+
+
+    private JPanel criarAbaCentos() {
+        JPanel painel = new JPanel(new BorderLayout(10, 10));
+        painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        DefaultTableModel modeloTabela = new DefaultTableModel(
+                new String[]{"ID", "Nome", "Preço", "Máx Sabores"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        List<Cento> centos = dao.carregarCentos();
+        for (Cento c : centos) {
+            modeloTabela.addRow(new Object[]{
+                    c.getId(),
+                    c.getNome(),
+                    String.format("R$ %.2f", c.getPrecoTotal()),
+                    c.getMaxSabores()
+            });
+        }
+
+        JTable tabela = new JTable(modeloTabela);
+        tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane scroll = new JScrollPane(tabela);
+        painel.add(scroll, BorderLayout.CENTER);
+
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
+        JButton botaoNovo = new JButton("➕ Novo Cento");
+        botaoNovo.addActionListener(e -> {
+            DialogCento dialog = new DialogCento(parentFrame, null);
+            dialog.setVisible(true);
+            atualizarTabelaCentos(modeloTabela);
+        });
+        painelBotoes.add(botaoNovo);
+
+        JButton botaoEditar = new JButton("✏️ Editar");
+        botaoEditar.addActionListener(e -> {
+            int linha = tabela.getSelectedRow();
+            if (linha >= 0) {
+                int id = (int) modeloTabela.getValueAt(linha, 0);
+                Cento c = dao.carregarCentos().stream()
+                        .filter(cento -> cento.getId() == id)
+                        .findFirst()
+                        .orElse(null);
+                if (c != null) {
+                    DialogCento dialog = new DialogCento(parentFrame, c);
+                    dialog.setVisible(true);
+                    atualizarTabelaCentos(modeloTabela);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um cento!");
+            }
+        });
+        painelBotoes.add(botaoEditar);
+
+        JButton botaoDeletar = new JButton("🗑️ Deletar");
+        botaoDeletar.addActionListener(e -> {
+            int linha = tabela.getSelectedRow();
+            if (linha >= 0) {
+                int confirm = JOptionPane.showConfirmDialog(this,
+                        "Deletar este cento?", "Confirmar", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    int id = (int) modeloTabela.getValueAt(linha, 0);
+                    dao.deletarCento(id);
+                    atualizarTabelaCentos(modeloTabela);
+                    JOptionPane.showMessageDialog(this, "✅ Cento deletado!");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um cento!");
+            }
+        });
+        painelBotoes.add(botaoDeletar);
+
+        painel.add(painelBotoes, BorderLayout.NORTH);
+
+        return painel;
+    }
+
+    private void atualizarTabelaCentos(DefaultTableModel modelo) {
+        modelo.setRowCount(0);
+        List<Cento> centos = dao.carregarCentos();
+        for (Cento c : centos) {
+            modelo.addRow(new Object[]{
+                    c.getId(),
+                    c.getNome(),
+                    String.format("R$ %.2f", c.getPrecoTotal()),
+                    c.getMaxSabores()
             });
         }
     }

@@ -2,7 +2,6 @@ package salgaderia.ui.dialogs;
 
 import salgaderia.dao.DadosDAO;
 import salgaderia.model.*;
-import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -29,7 +28,9 @@ public class DialogCombo extends JDialog {
     private List<ItemCombo> itensCombo;
 
 
-    private List<JCheckBox> checkboxesAdicionais;
+    private JTable tabelaAdicionais;
+    private DefaultTableModel modeloTabelaAdicionais;
+    private List<Adicional> adicionaisElegiveis;
     private List<Adicional> adicionaisDisponiveis;
 
     public DialogCombo(JFrame parent, Combo comboExistente) {
@@ -37,11 +38,16 @@ public class DialogCombo extends JDialog {
         this.dao = DadosDAO.getInstance();
         this.combo = comboExistente;
         this.itensCombo = new ArrayList<>();
-        this.checkboxesAdicionais = new ArrayList<>();
+        this.adicionaisElegiveis = new ArrayList<>();
         this.adicionaisDisponiveis = new ArrayList<>();
 
-        if (comboExistente != null && comboExistente.getItens() != null) {
-            this.itensCombo.addAll(comboExistente.getItens());
+        if (comboExistente != null) {
+            if (comboExistente.getItens() != null) {
+                this.itensCombo.addAll(comboExistente.getItens());
+            }
+            if (comboExistente.getAdicionaisElegiveis() != null) {
+                this.adicionaisElegiveis.addAll(comboExistente.getAdicionaisElegiveis());
+            }
         }
 
         initComponents();
@@ -80,7 +86,7 @@ public class DialogCombo extends JDialog {
         gbc.gridx = 0; gbc.gridy = 1;
         gbc.gridwidth = 1;
         gbc.weightx = 0;
-        painelDados.add(new JLabel("Preço Total (R$):"), gbc);
+        painelDados.add(new JLabel("Preço (R$):"), gbc);
 
         gbc.gridx = 1; gbc.gridy = 1;
         gbc.gridwidth = 1;
@@ -120,11 +126,14 @@ public class DialogCombo extends JDialog {
         add(painelDados, BorderLayout.NORTH);
 
 
-        JPanel painelTabela = new JPanel(new BorderLayout());
-        painelTabela.setBorder(BorderFactory.createTitledBorder("🥒 Itens do Combo (Sabores)"));
+        JPanel painelTabelas = new JPanel(new GridLayout(2, 1, 5, 5));
 
-        String[] colunas = {"Produto"};
-        modeloTabelaItens = new DefaultTableModel(colunas, 0) {
+
+        JPanel painelItens = new JPanel(new BorderLayout());
+        painelItens.setBorder(BorderFactory.createTitledBorder("🥒 Sabores do Combo"));
+
+        String[] colunasItens = {"Produto"};
+        modeloTabelaItens = new DefaultTableModel(colunasItens, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -133,70 +142,75 @@ public class DialogCombo extends JDialog {
 
         tabelaItens = new JTable(modeloTabelaItens);
         tabelaItens.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane scroll = new JScrollPane(tabelaItens);
-        scroll.setPreferredSize(new Dimension(400, 120));
-        painelTabela.add(scroll, BorderLayout.CENTER);
+        JScrollPane scrollItens = new JScrollPane(tabelaItens);
+        scrollItens.setPreferredSize(new Dimension(400, 100));
+        painelItens.add(scrollItens, BorderLayout.CENTER);
 
-
-        JPanel painelBotoesTabela = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        JPanel painelBotoesItens = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton botaoAdicionarItem = new JButton("➕ Adicionar Sabor");
         botaoAdicionarItem.addActionListener(e -> adicionarItem());
-        painelBotoesTabela.add(botaoAdicionarItem);
+        painelBotoesItens.add(botaoAdicionarItem);
 
         JButton botaoRemoverItem = new JButton("➖ Remover Sabor");
         botaoRemoverItem.addActionListener(e -> removerItem());
-        painelBotoesTabela.add(botaoRemoverItem);
+        painelBotoesItens.add(botaoRemoverItem);
 
-        painelTabela.add(painelBotoesTabela, BorderLayout.SOUTH);
-
-        add(painelTabela, BorderLayout.CENTER);
-
+        painelItens.add(painelBotoesItens, BorderLayout.SOUTH);
 
         JPanel painelAdicionais = new JPanel(new BorderLayout());
-        painelAdicionais.setBorder(BorderFactory.createTitledBorder("🥤 Adicionais Elegíveis (cliente escolhe 1)"));
+        painelAdicionais.setBorder(BorderFactory.createTitledBorder("🥤 Adicionais Elegíveis"));
 
-        JPanel painelCheckboxes = new JPanel(new GridLayout(0, 3, 10, 5));
-        painelCheckboxes.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-
-
-        adicionaisDisponiveis = dao.carregarAdicionais();
-
-        if (adicionaisDisponiveis.isEmpty()) {
-            JLabel label = new JLabel("Nenhum adicional cadastrado. Cadastre na aba Adicionais.");
-            painelCheckboxes.add(label);
-        } else {
-            for (Adicional a : adicionaisDisponiveis) {
-                JCheckBox checkbox = new JCheckBox(a.getNome() + " (R$ " + String.format("%.2f", a.getPreco()) + ")");
-                checkboxesAdicionais.add(checkbox);
-                painelCheckboxes.add(checkbox);
+        String[] colunasAdicionais = {"Adicional"};
+        modeloTabelaAdicionais = new DefaultTableModel(colunasAdicionais, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
             }
-        }
+        };
 
-        painelAdicionais.add(painelCheckboxes, BorderLayout.CENTER);
-        add(painelAdicionais, BorderLayout.SOUTH);
+        tabelaAdicionais = new JTable(modeloTabelaAdicionais);
+        tabelaAdicionais.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane scrollAdicionais = new JScrollPane(tabelaAdicionais);
+        scrollAdicionais.setPreferredSize(new Dimension(400, 100));
+        painelAdicionais.add(scrollAdicionais, BorderLayout.CENTER);
 
+        JPanel painelBotoesAdicionais = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
+        JButton botaoAdicionarAdicional = new JButton("➕ Adicionar Adicional");
+        botaoAdicionarAdicional.addActionListener(e -> adicionarAdicional());
+        painelBotoesAdicionais.add(botaoAdicionarAdicional);
+
+        JButton botaoRemoverAdicional = new JButton("➖ Remover Adicional");
+        botaoRemoverAdicional.addActionListener(e -> removerAdicional());
+        painelBotoesAdicionais.add(botaoRemoverAdicional);
+
+        painelAdicionais.add(painelBotoesAdicionais, BorderLayout.SOUTH);
+
+        painelTabelas.add(painelItens);
+        painelTabelas.add(painelAdicionais);
+
+        add(painelTabelas, BorderLayout.CENTER);
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         JButton botaoSalvar = new JButton("💾 Salvar");
-        StyleConfig.estilizarBotao(botaoSalvar, StyleConfig.COR_SUCESSO);
         botaoSalvar.addActionListener(e -> salvar());
         painelBotoes.add(botaoSalvar);
 
         JButton botaoCancelar = new JButton("❌ Cancelar");
-        StyleConfig.estilizarBotao(botaoCancelar, StyleConfig.COR_ERRO);
         botaoCancelar.addActionListener(e -> dispose());
         painelBotoes.add(botaoCancelar);
 
         add(painelBotoes, BorderLayout.SOUTH);
 
-
         carregarTabelaItens();
+        carregarTabelaAdicionais();
+        carregarAdicionaisDisponiveis();
     }
 
-    private void adicionarItem() {
 
+    private void adicionarItem() {
         DialogItemCombo dialog = new DialogItemCombo(this);
         dialog.setVisible(true);
 
@@ -213,7 +227,7 @@ public class DialogCombo extends JDialog {
             itensCombo.remove(linha);
             carregarTabelaItens();
         } else {
-            JOptionPane.showMessageDialog(this, "Selecione um item para remover!");
+            JOptionPane.showMessageDialog(this, "Selecione um sabor para remover!");
         }
     }
 
@@ -226,22 +240,77 @@ public class DialogCombo extends JDialog {
         }
     }
 
+
+    private void carregarAdicionaisDisponiveis() {
+        adicionaisDisponiveis = dao.carregarAdicionais();
+    }
+
+    private void adicionarAdicional() {
+        if (adicionaisDisponiveis.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nenhum adicional cadastrado! Cadastre na aba Adicionais.");
+            return;
+        }
+
+        String[] nomes = adicionaisDisponiveis.stream()
+                .map(a -> a.getNome() + " (R$ " + String.format("%.2f", a.getPreco()) + ")")
+                .toArray(String[]::new);
+
+        String selecionado = (String) JOptionPane.showInputDialog(
+                this,
+                "Selecione um adicional elegível:",
+                "Adicionar Adicional",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                nomes,
+                nomes[0]
+        );
+
+        if (selecionado != null) {
+            for (Adicional a : adicionaisDisponiveis) {
+                String nomeCompleto = a.getNome() + " (R$ " + String.format("%.2f", a.getPreco()) + ")";
+                if (nomeCompleto.equals(selecionado)) {
+                    boolean jaExiste = adicionaisElegiveis.stream()
+                            .anyMatch(ad -> ad.getId() == a.getId());
+                    if (!jaExiste) {
+                        adicionaisElegiveis.add(a);
+                        carregarTabelaAdicionais();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Este adicional já foi adicionado!");
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private void removerAdicional() {
+        int linha = tabelaAdicionais.getSelectedRow();
+        if (linha >= 0) {
+            adicionaisElegiveis.remove(linha);
+            carregarTabelaAdicionais();
+        } else {
+            JOptionPane.showMessageDialog(this, "Selecione um adicional para remover!");
+        }
+    }
+
+    private void carregarTabelaAdicionais() {
+        modeloTabelaAdicionais.setRowCount(0);
+        for (Adicional a : adicionaisElegiveis) {
+            modeloTabelaAdicionais.addRow(new Object[]{
+                    a.getNome() + " (R$ " + String.format("%.2f", a.getPreco()) + ")"
+            });
+        }
+    }
+
     private void preencherCampos() {
         campoNome.setText(combo.getNome());
         campoPreco.setText(String.format("%.2f", combo.getPrecoTotal()).replace(".", ","));
         campoMaxItems.setText(String.valueOf(combo.getQuantidadeMaximaDeItems()));
         campoMaxFlavors.setText(String.valueOf(combo.getQuantidadeMaximaDeFlavors()));
 
-
         if (combo.getAdicionaisElegiveis() != null) {
-            for (JCheckBox checkbox : checkboxesAdicionais) {
-                for (Adicional a : combo.getAdicionaisElegiveis()) {
-                    if (checkbox.getText().startsWith(a.getNome())) {
-                        checkbox.setSelected(true);
-                        break;
-                    }
-                }
-            }
+            adicionaisElegiveis.addAll(combo.getAdicionaisElegiveis());
+            carregarTabelaAdicionais();
         }
     }
 
@@ -253,13 +322,7 @@ public class DialogCombo extends JDialog {
                 return;
             }
 
-            String precoStr = campoPreco.getText().trim().replace(",", ".");
-            if (precoStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Preço é obrigatório!");
-                return;
-            }
-
-            BigDecimal preco = new BigDecimal(precoStr);
+            BigDecimal preco = new BigDecimal(campoPreco.getText().trim().replace(",", "."));
             if (preco.compareTo(BigDecimal.ZERO) <= 0) {
                 JOptionPane.showMessageDialog(this, "Preço deve ser maior que zero!");
                 return;
@@ -282,36 +345,6 @@ public class DialogCombo extends JDialog {
                 return;
             }
 
-
-            if (itensCombo.size() > maxFlavors) {
-                JOptionPane.showMessageDialog(this,
-                        "Você adicionou " + itensCombo.size() + " sabores, mas o máximo é " + maxFlavors + "!",
-                        "Limite de sabores excedido",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-
-            List<Adicional> adicionaisSelecionados = new ArrayList<>();
-            for (int i = 0; i < checkboxesAdicionais.size(); i++) {
-                if (checkboxesAdicionais.get(i).isSelected()) {
-                    adicionaisSelecionados.add(adicionaisDisponiveis.get(i));
-                }
-            }
-
-
-            if (adicionaisSelecionados.isEmpty()) {
-                int resposta = JOptionPane.showConfirmDialog(this,
-                        "O combo não tem nenhum adicional elegível. Deseja continuar mesmo assim?",
-                        "Sem adicionais",
-                        JOptionPane.YES_NO_OPTION);
-                if (resposta != JOptionPane.YES_OPTION) {
-                    return;
-                }
-            }
-
-            int qtdAdicionaisPermitidos = 1;
-
             if (combo == null) {
                 Combo novo = new Combo();
                 novo.setNome(nome);
@@ -319,8 +352,8 @@ public class DialogCombo extends JDialog {
                 novo.setQuantidadeMaximaDeItems(maxItems);
                 novo.setQuantidadeMaximaDeFlavors(maxFlavors);
                 novo.setItens(new ArrayList<>(itensCombo));
-                novo.setAdicionaisElegiveis(adicionaisSelecionados);
-                novo.setQuantidadeAdicionaisPermitidos(qtdAdicionaisPermitidos);
+                novo.setAdicionaisElegiveis(new ArrayList<>(adicionaisElegiveis));
+                novo.setQuantidadeAdicionaisPermitidos(1); // Sempre 1 adicional
 
                 dao.salvarCombo(novo);
                 System.out.println("✅ Combo salvo: " + nome + " (ID: " + novo.getId() + ")");
@@ -331,8 +364,8 @@ public class DialogCombo extends JDialog {
                 combo.setQuantidadeMaximaDeItems(maxItems);
                 combo.setQuantidadeMaximaDeFlavors(maxFlavors);
                 combo.setItens(new ArrayList<>(itensCombo));
-                combo.setAdicionaisElegiveis(adicionaisSelecionados);
-                combo.setQuantidadeAdicionaisPermitidos(qtdAdicionaisPermitidos);
+                combo.setAdicionaisElegiveis(new ArrayList<>(adicionaisElegiveis));
+                combo.setQuantidadeAdicionaisPermitidos(1);
 
                 dao.atualizarCombo(combo);
                 System.out.println("✅ Combo atualizado: " + nome + " (ID: " + combo.getId() + ")");
