@@ -1,115 +1,48 @@
 package salgaderia.model;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class Cento {
     private int id;
     private String nome;
-    private List<ItemCombo> itens;
     private BigDecimal precoTotal;
-    private int quantidadeMaxima;
-    private int quantidadeMaximaDeSabores;
-    private BigDecimal precoOverride;
+    private int maxSabores;
+    private List<ItemCombo> itens; // Produto + quantidade máxima
 
     public Cento() {
+        this.itens = new ArrayList<>();
+        this.maxSabores = 0;
     }
 
-    public Cento(int id, String nome, List<ItemCombo> itens, BigDecimal precoTotal) {
+    public Cento(int id, String nome, BigDecimal precoTotal, int maxSabores, List<ItemCombo> itens) {
         this.id = id;
         this.nome = nome;
-        this.itens = itens;
         this.precoTotal = precoTotal;
-        this.quantidadeMaxima = 100;
-        this.quantidadeMaximaDeSabores = itens != null ? itens.size() : 5;
+        this.maxSabores = maxSabores;
+        this.itens = itens != null ? itens : new ArrayList<>();
     }
 
-    public Cento(int id, String nome, List<ItemCombo> itens, BigDecimal precoTotal, 
-                 int quantidadeMaximaDeSabores) {
-        this.id = id;
-        this.nome = nome;
-        this.itens = itens;
-        this.precoTotal = precoTotal;
-        this.quantidadeMaxima = 100;
-        this.quantidadeMaximaDeSabores = quantidadeMaximaDeSabores;
-    }
+    // Getters e Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public int getId() {
-        return id;
-    }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public BigDecimal getPrecoTotal() { return precoTotal; }
+    public void setPrecoTotal(BigDecimal precoTotal) { this.precoTotal = precoTotal; }
 
-    public String getNome() {
-        return nome;
-    }
+    public int getMaxSabores() { return maxSabores; }
+    public void setMaxSabores(int maxSabores) { this.maxSabores = maxSabores; }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public List<ItemCombo> getItens() {
-        return itens;
-    }
-
-    public void setItens(List<ItemCombo> itens) {
-        this.itens = itens;
-    }
-
-    public BigDecimal getPrecoTotal() {
-        // Se houver override, retorna o preço override
-        if (precoOverride != null && precoOverride.compareTo(BigDecimal.ZERO) > 0) {
-            return precoOverride;
-        }
-        return precoTotal;
-    }
-
-    public void setPrecoTotal(BigDecimal precoTotal) {
-        this.precoTotal = precoTotal;
-    }
-
-    public int getQuantidadeMaxima() {
-        return quantidadeMaxima;
-    }
-
-    public void setQuantidadeMaxima(int quantidadeMaxima) {
-        this.quantidadeMaxima = quantidadeMaxima;
-    }
-
-    public int getQuantidadeMaximaDeSabores() {
-        return quantidadeMaximaDeSabores;
-    }
-
-    public void setQuantidadeMaximaDeSabores(int quantidadeMaximaDeSabores) {
-        this.quantidadeMaximaDeSabores = quantidadeMaximaDeSabores;
-    }
-
-    public BigDecimal getPrecoOverride() {
-        return precoOverride;
-    }
-
-    public void setPrecoOverride(BigDecimal precoOverride) {
-        this.precoOverride = precoOverride;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Cento cento)) return false;
-        return getId() == cento.getId() && Objects.equals(getNome(), cento.getNome()) && 
-               Objects.equals(getItens(), cento.getItens()) && 
-               Objects.equals(getPrecoTotal(), cento.getPrecoTotal());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getNome(), getItens(), getPrecoTotal());
-    }
+    public List<ItemCombo> getItens() { return itens; }
+    public void setItens(List<ItemCombo> itens) { this.itens = itens != null ? itens : new ArrayList<>(); }
 
     @Override
     public String toString() {
-        return nome;
+        return nome + " (R$ " + String.format("%.2f", precoTotal) + ")";
     }
 }

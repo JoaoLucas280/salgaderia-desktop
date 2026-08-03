@@ -529,4 +529,191 @@ public class DadosDAO {
             e.printStackTrace();
         }
     }
+
+    // MÉTODOS PARA CENTOS
+
+    public List<Cento> carregarCentos() {
+        List<Cento> centos = new ArrayList<>();
+        String sql = "SELECT * FROM centos";
+
+        try {
+            Connection conn = Database.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                Cento c = new Cento();
+                c.setId(rs.getInt("id"));
+                c.setNome(rs.getString("nome"));
+                int centavos = rs.getInt("preco_total");
+                c.setPrecoTotal(BigDecimal.valueOf(centavos).divide(BigDecimal.valueOf(100)));
+                c.setMaxSabores(rs.getInt("max_sabores"));
+
+                // Carrega os itens do cento
+                c.setItens(carregarItensCento(c.getId()));
+
+                centos.add(c);
+            }
+
+            rs.close();
+            stmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao carregar centos: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return centos;
+    }
+
+    private List<ItemCombo> carregarItensCento(int centoId) {
+        List<ItemCombo> itens = new ArrayList<>();
+        String sql = "SELECT ci.*, p.nome as produto_nome, p.preco_unitario FROM cento_itens ci " +
+                "JOIN produtos p ON ci.produto_id = p.id WHERE ci.cento_id = ?";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, centoId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Produto produto = new Produto();
+                produto.setId(rs.getLong("produto_id"));
+                produto.setNomeProduto(rs.getString("produto_nome"));
+                int centavos = rs.getInt("preco_unitario");
+                produto.setPrecoUnitario(BigDecimal.valueOf(centavos).divide(BigDecimal.valueOf(100)));
+
+                ItemCombo item = new ItemCombo();
+                item.setProduto(produto);
+
+                itens.add(item);
+            }
+
+            rs.close();
+            pstmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao carregar itens do cento: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return itens;
+    }
+
+    public void salvarCento(Cento c) {
+        String sql = "INSERT INTO centos (nome, preco_total, max_sabores) VALUES (?, ?, ?)";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+            pstmt.setString(1, c.getNome());
+            int centavos = c.getPrecoTotal().multiply(BigDecimal.valueOf(100)).intValue();
+            pstmt.setInt(2, centavos);
+            pstmt.setInt(3, c.getMaxSabores());
+
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int centoId = generatedKeys.getInt(1);
+                        c.setId(centoId);
+                        salvarItensCento(centoId, c.getItens());
+                    }
+                }
+            }
+
+            pstmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao salvar cento: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void salvarItensCento(int centoId, List<ItemCombo> itens) {
+        if (itens == null || itens.isEmpty()) return;
+
+        String sql = "INSERT INTO cento_itens (cento_id, produto_id) VALUES (?, ?)";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+
+            for (ItemCombo item : itens) {
+                pstmt.setInt(1, centoId);
+                pstmt.setLong(2, item.getProduto().getId());
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();
+            pstmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao salvar itens do cento: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void atualizarCento(Cento c) {
+        deletarItensCento(c.getId());
+
+        String sql = "UPDATE centos SET nome = ?, preco_total = ?, max_sabores = ? WHERE id = ?";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+
+            pstmt.setString(1, c.getNome());
+            int centavos = c.getPrecoTotal().multiply(BigDecimal.valueOf(100)).intValue();
+            pstmt.setInt(2, centavos);
+            pstmt.setInt(3, c.getMaxSabores());
+            pstmt.setInt(4, c.getId());
+
+            pstmt.executeUpdate();
+            pstmt.close();
+
+            salvarItensCento(c.getId(), c.getItens());
+
+            System.out.println("✅ Cento atualizado: " + c.getNome());
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao atualizar cento: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void deletarItensCento(int centoId) {
+        String sql = "DELETE FROM cento_itens WHERE cento_id = ?";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, centoId);
+            pstmt.executeUpdate();
+            pstmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao deletar itens do cento: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void deletarCento(int id) {
+        String sql = "DELETE FROM centos WHERE id = ?";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+            pstmt.close();
+
+            System.out.println("✅ Cento deletado: ID " + id);
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao deletar cento: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }
