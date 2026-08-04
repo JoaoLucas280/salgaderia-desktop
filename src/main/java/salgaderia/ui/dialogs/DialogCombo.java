@@ -22,6 +22,8 @@ public class DialogCombo extends JDialog {
     private JTextField campoMaxItems;
     private JTextField campoMaxFlavors;
 
+    private JLabel labelContadorSabores;
+    private JLabel labelContadorAdicionais;
 
     private JTable tabelaItens;
     private DefaultTableModel modeloTabelaItens;
@@ -148,6 +150,11 @@ public class DialogCombo extends JDialog {
 
         JPanel painelBotoesItens = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
+        labelContadorSabores = new JLabel("🥒 Sabores: 0");
+        labelContadorSabores.setFont(new Font("Arial", Font.BOLD, 12));
+        labelContadorSabores.setForeground(new Color(0, 100, 200));
+        painelBotoesItens.add(labelContadorSabores);
+
         JButton botaoAdicionarItem = new JButton("➕ Adicionar Sabor");
         botaoAdicionarItem.addActionListener(e -> adicionarItem());
         painelBotoesItens.add(botaoAdicionarItem);
@@ -176,6 +183,11 @@ public class DialogCombo extends JDialog {
         painelAdicionais.add(scrollAdicionais, BorderLayout.CENTER);
 
         JPanel painelBotoesAdicionais = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
+        labelContadorAdicionais = new JLabel("🥤 Adicionais: 0");
+        labelContadorAdicionais.setFont(new Font("Arial", Font.BOLD, 12));
+        labelContadorAdicionais.setForeground(new Color(150, 100, 0));
+        painelBotoesAdicionais.add(labelContadorAdicionais);
 
         JButton botaoAdicionarAdicional = new JButton("➕ Adicionar Adicional");
         botaoAdicionarAdicional.addActionListener(e -> adicionarAdicional());
@@ -211,13 +223,23 @@ public class DialogCombo extends JDialog {
 
 
     private void adicionarItem() {
+        System.out.println("🔵 adicionarItem() chamado");
+        System.out.println("   itensCombo.size() ANTES: " + itensCombo.size());
+        
         DialogItemCombo dialog = new DialogItemCombo(this);
         dialog.setVisible(true);
 
         ItemCombo item = dialog.getItemCombo();
+        System.out.println("   DialogItemCombo retornou: " + (item != null ? "✅ ItemCombo não-nulo" : "❌ null"));
+        
         if (item != null) {
+            System.out.println("   Adicionando item: " + item.getProduto().getNomeProduto() + " (id=" + item.getProduto().getId() + ")");
             itensCombo.add(item);
+            System.out.println("   itensCombo.size() DEPOIS: " + itensCombo.size());
             carregarTabelaItens();
+            atualizarContadores();
+        } else {
+            System.out.println("   ⚠️  AVISO: item é null, não adicionado à lista");
         }
     }
 
@@ -226,18 +248,39 @@ public class DialogCombo extends JDialog {
         if (linha >= 0) {
             itensCombo.remove(linha);
             carregarTabelaItens();
+            atualizarContadores();
         } else {
             JOptionPane.showMessageDialog(this, "Selecione um sabor para remover!");
         }
     }
 
     private void carregarTabelaItens() {
+        System.out.println("📋 carregarTabelaItens() chamado");
+        System.out.println("   itensCombo.size() = " + itensCombo.size());
+        
         modeloTabelaItens.setRowCount(0);
-        for (ItemCombo item : itensCombo) {
-            modeloTabelaItens.addRow(new Object[]{
-                    item.getProduto().getNomeProduto()
-            });
+        
+        if (itensCombo.isEmpty()) {
+            System.out.println("   ⚠️  AVISO: itensCombo está vazio!");
         }
+        
+        for (ItemCombo item : itensCombo) {
+            if (item.getProduto() != null) {
+                System.out.println("   ✓ Adicionando linha na tabela: " + item.getProduto().getNomeProduto());
+                modeloTabelaItens.addRow(new Object[]{
+                        item.getProduto().getNomeProduto()
+                });
+            } else {
+                System.out.println("   ⚠️  AVISO: ItemCombo sem produto!");
+            }
+        }
+        
+        System.out.println("   Total de linhas na tabela: " + modeloTabelaItens.getRowCount());
+    }
+
+    private void atualizarContadores() {
+        labelContadorSabores.setText("🥒 Sabores: " + itensCombo.size());
+        labelContadorAdicionais.setText("🥤 Adicionais: " + adicionaisElegiveis.size());
     }
 
 
@@ -274,6 +317,7 @@ public class DialogCombo extends JDialog {
                     if (!jaExiste) {
                         adicionaisElegiveis.add(a);
                         carregarTabelaAdicionais();
+                        atualizarContadores();
                     } else {
                         JOptionPane.showMessageDialog(this, "Este adicional já foi adicionado!");
                     }
@@ -288,6 +332,7 @@ public class DialogCombo extends JDialog {
         if (linha >= 0) {
             adicionaisElegiveis.remove(linha);
             carregarTabelaAdicionais();
+            atualizarContadores();
         } else {
             JOptionPane.showMessageDialog(this, "Selecione um adicional para remover!");
         }
@@ -343,6 +388,16 @@ public class DialogCombo extends JDialog {
             if (itensCombo.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Adicione pelo menos um sabor ao combo!");
                 return;
+            }
+
+            System.out.println("💾 salvar() chamado com " + itensCombo.size() + " itens e " + adicionaisElegiveis.size() + " adicionais elegíveis:");
+            for (int i = 0; i < itensCombo.size(); i++) {
+                ItemCombo item = itensCombo.get(i);
+                System.out.println("  ITEM [" + i + "] produto_id=" + item.getProduto().getId() + ", nome=" + item.getProduto().getNomeProduto());
+            }
+            for (int i = 0; i < adicionaisElegiveis.size(); i++) {
+                Adicional a = adicionaisElegiveis.get(i);
+                System.out.println("  ADICIONAL [" + i + "] adicional_id=" + a.getId() + ", nome=" + a.getNome());
             }
 
             if (combo == null) {

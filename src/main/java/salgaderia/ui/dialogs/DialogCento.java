@@ -47,7 +47,6 @@ public class DialogCento extends JDialog {
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
 
-        // ===== PAINEL DE DADOS =====
         JPanel painelDados = new JPanel(new GridBagLayout());
         painelDados.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -55,7 +54,6 @@ public class DialogCento extends JDialog {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Nome
         gbc.gridx = 0; gbc.gridy = 0;
         gbc.gridwidth = 1;
         gbc.weightx = 0;
@@ -68,7 +66,6 @@ public class DialogCento extends JDialog {
         campoNome.setPreferredSize(new Dimension(250, 30));
         painelDados.add(campoNome, gbc);
 
-        // Preço
         gbc.gridx = 0; gbc.gridy = 1;
         gbc.gridwidth = 1;
         gbc.weightx = 0;
@@ -81,7 +78,6 @@ public class DialogCento extends JDialog {
         campoPreco.setPreferredSize(new Dimension(120, 30));
         painelDados.add(campoPreco, gbc);
 
-        // Máximo de Sabores
         gbc.gridx = 0; gbc.gridy = 2;
         gbc.gridwidth = 1;
         gbc.weightx = 0;
@@ -97,7 +93,6 @@ public class DialogCento extends JDialog {
 
         add(painelDados, BorderLayout.NORTH);
 
-        // ===== TABELA DE ITENS =====
         JPanel painelTabela = new JPanel(new BorderLayout());
         painelTabela.setBorder(BorderFactory.createTitledBorder("🥒 Sabores do Cento (100 salgados)"));
 
@@ -129,7 +124,6 @@ public class DialogCento extends JDialog {
 
         add(painelTabela, BorderLayout.CENTER);
 
-        // ===== BOTÕES =====
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         JButton botaoSalvar = new JButton("💾 Salvar");
