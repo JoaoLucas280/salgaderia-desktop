@@ -84,13 +84,19 @@ public class DialogItemCombo extends JDialog {
 
     private void salvar() {
         Produto produto = (Produto) comboProdutos.getSelectedItem();
+        
+        System.out.println("💾 DialogItemCombo.salvar() chamado");
+        System.out.println("   comboProdutos.getSelectedItem() retornou: " + (produto != null ? "✅ " + produto.getNomeProduto() : "❌ null"));
+        
         if (produto == null) {
+            System.out.println("   ❌ ERRO: Produto é null!");
             JOptionPane.showMessageDialog(this, "Selecione um sabor!");
             return;
         }
 
-
         itemSalvo = new ItemCombo(produto);
+        System.out.println("   ✅ ItemCombo criado: " + itemSalvo.getProduto().getNomeProduto());
+        
         salvou = true;
         dispose();
     }

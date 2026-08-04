@@ -57,7 +57,6 @@ public class TelaAdmin extends JPanel {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Tabela
         String[] colunas = {"ID", "Nome", "Preço", "Tipo", "Ativo"};
         modeloTabelaUnitarios = new DefaultTableModel(colunas, 0) {
             @Override
@@ -82,7 +81,6 @@ public class TelaAdmin extends JPanel {
         JScrollPane scroll = new JScrollPane(tabelaUnitarios);
         painel.add(scroll, BorderLayout.CENTER);
 
-        // Botões
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton botaoNovo = new JButton("➕ Novo");
@@ -155,7 +153,6 @@ public class TelaAdmin extends JPanel {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Tabela
         String[] colunas = {"ID", "Nome", "Preço"};
         modeloTabelaAdicionais = new DefaultTableModel(colunas, 0) {
             @Override
@@ -178,7 +175,6 @@ public class TelaAdmin extends JPanel {
         JScrollPane scroll = new JScrollPane(tabelaAdicionais);
         painel.add(scroll, BorderLayout.CENTER);
 
-        // Botões
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton botaoNovo = new JButton("➕ Novo");

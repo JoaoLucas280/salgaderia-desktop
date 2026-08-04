@@ -37,13 +37,12 @@ public class TelaMontagemCombo extends JDialog {
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
 
-        // ===== TÍTULO =====
+
         JLabel labelTitulo = new JLabel("Monte seu combo: " + combo.getNome(), SwingConstants.CENTER);
         labelTitulo.setFont(StyleConfig.FONTE_TITULO);
         labelTitulo.setForeground(StyleConfig.COR_PRIMARIA);
         add(labelTitulo, BorderLayout.NORTH);
 
-        // ===== PAINEL DE INFORMAÇÕES =====
         JPanel painelInfo = new JPanel(new GridLayout(2, 2, 10, 5));
         painelInfo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         painelInfo.add(new JLabel("Total de salgados:"));
@@ -51,7 +50,6 @@ public class TelaMontagemCombo extends JDialog {
         painelInfo.add(new JLabel("Máximo de sabores:"));
         painelInfo.add(new JLabel(String.valueOf(combo.getQuantidadeMaximaDeFlavors())));
 
-        // ===== PAINEL DE SABORES =====
         JPanel painelSabores = new JPanel(new GridBagLayout());
         painelSabores.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(),
@@ -75,7 +73,6 @@ public class TelaMontagemCombo extends JDialog {
                 Produto produto = item.getProduto();
                 produtos.add(produto);
 
-                // Nome do produto
                 gbc.gridx = 0;
                 gbc.gridy = linha;
                 gbc.gridwidth = 1;
@@ -83,7 +80,6 @@ public class TelaMontagemCombo extends JDialog {
                 JLabel labelNome = new JLabel(produto.getNomeProduto() + " (R$ " + String.format("%.2f", produto.getPrecoUnitario()) + ")");
                 painelSabores.add(labelNome, gbc);
 
-                // Spinner
                 gbc.gridx = 1;
                 gbc.gridy = linha;
                 gbc.gridwidth = 1;
@@ -98,7 +94,6 @@ public class TelaMontagemCombo extends JDialog {
             }
         }
 
-        // ===== TOTAL =====
         JPanel painelTotal = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         painelTotal.add(new JLabel("Total:"));
         labelTotal = new JLabel("0 / " + combo.getQuantidadeMaximaDeItems());
@@ -106,7 +101,6 @@ public class TelaMontagemCombo extends JDialog {
         labelTotal.setForeground(StyleConfig.COR_PRIMARIA);
         painelTotal.add(labelTotal);
 
-        // ===== BOTÕES =====
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         botaoAdicionar = new JButton("✅ Adicionar ao Pedido");
@@ -122,7 +116,6 @@ public class TelaMontagemCombo extends JDialog {
         });
         painelBotoes.add(botaoCancelar);
 
-        // ===== ADICIONA AO PAINEL PRINCIPAL =====
         JPanel painelCentral = new JPanel(new BorderLayout(10, 10));
         painelCentral.add(painelInfo, BorderLayout.NORTH);
         painelCentral.add(new JScrollPane(painelSabores), BorderLayout.CENTER);
