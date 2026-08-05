@@ -12,9 +12,6 @@ import java.util.List;
 
 public class TelaMontagemCento extends JDialog {
 
-    // Um "cento" é sempre 100 salgados, por definição de negócio.
-    // Não existe coluna equivalente a max_items na tabela centos porque
-    // esse valor nunca muda — por isso é uma constante aqui, não um campo do model.
     private static final int TOTAL_CENTO = 100;
 
     private final Cento cento;

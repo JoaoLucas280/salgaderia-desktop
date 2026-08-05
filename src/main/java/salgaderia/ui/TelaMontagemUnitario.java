@@ -11,12 +11,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Tela de montagem de "vários unitários de uma vez".
- * Lista todos os produtos do tipo UNIDADE cadastrados, com um spinner de
- * quantidade ao lado de cada um. Ao confirmar, todos os itens com
- * quantidade > 0 são devolvidos prontos para entrar no pedido.
- */
+
 public class TelaMontagemUnitario extends JDialog {
 
     private final List<Produto> produtos;
