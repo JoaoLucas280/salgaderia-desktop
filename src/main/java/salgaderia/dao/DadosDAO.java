@@ -2,9 +2,11 @@ package salgaderia.dao;
 
 import salgaderia.model.*;
 import salgaderia.model.enums.tipoProduto;
+import salgaderia.model.enums.PeriodoFiltro;
 
 import java.sql.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +24,12 @@ public class DadosDAO {
         return instance;
     }
 
+    /**
+     * 🔧 Helper: retorna o ID da última linha inserida na conexão atual.
+     * Usado no lugar de PreparedStatement.getGeneratedKeys(), que não é
+     * suportado pela versão do driver sqlite-jdbc usada neste projeto
+     * (lança SQLFeatureNotSupportedException).
+     */
     private long ultimoIdInserido(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
@@ -140,34 +148,214 @@ public class DadosDAO {
     public void salvarPedido(Pedido pedido) {
         String sql = "INSERT INTO pedidos (nome_cliente, telefone, endereco, taxa_entrega, total, data_hora) VALUES (?, ?, ?, ?, ?, ?)";
 
+        System.out.println("🛒 salvarPedido() chamado: cliente=" + pedido.getNomeCliente() + ", itens=" + (pedido.getItens() != null ? pedido.getItens().size() : 0));
+
         try {
             Connection conn = Database.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
 
-                pstmt.setString(1, pedido.getNomeCliente());
-                pstmt.setString(2, pedido.getTelefone());
-                pstmt.setString(3, pedido.getEndereco());
-                pstmt.setDouble(4, pedido.getTaxaEntrega() != null ? pedido.getTaxaEntrega().doubleValue() : 0.0);
-                pstmt.setDouble(5, pedido.getTotal().doubleValue());
-                pstmt.setString(6, pedido.getDataHora().toString());
+            pstmt.setString(1, pedido.getNomeCliente());
+            pstmt.setString(2, pedido.getTelefone());
+            pstmt.setString(3, pedido.getEndereco());
 
-                int affectedRows = pstmt.executeUpdate();
+            // Valores guardados em centavos (INTEGER), igual ao resto do banco
+            int taxaCentavos = pedido.getTaxaEntrega() != null
+                    ? pedido.getTaxaEntrega().multiply(BigDecimal.valueOf(100)).intValue()
+                    : 0;
+            pstmt.setInt(4, taxaCentavos);
 
-                if (affectedRows > 0) {
-                    long id = ultimoIdInserido(conn);
-                    pedido.setId((int) id);
-                }
+            int totalCentavos = pedido.getTotal().multiply(BigDecimal.valueOf(100)).intValue();
+            pstmt.setInt(5, totalCentavos);
+
+            pstmt.setString(6, pedido.getDataHora().toString());
+
+            int affectedRows = pstmt.executeUpdate();
+            pstmt.close();
+
+            System.out.println("   INSERT pedido: " + affectedRows + " linha(s) afetada(s)");
+
+            if (affectedRows > 0) {
+                int pedidoId = (int) ultimoIdInserido(conn);
+                pedido.setId(pedidoId);
+                System.out.println("   ✅ Pedido inserido com ID: " + pedidoId);
+
+                salvarItensPedido(pedidoId, pedido.getItens());
             }
 
         } catch (SQLException e) {
-            System.err.println("Erro ao salvar pedido: " + e.getMessage());
+            System.err.println("❌ Erro ao salvar pedido: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public List<Pedido> carregarPedidos() {
-        return new ArrayList<>();
+    private void salvarItensPedido(int pedidoId, List<ItemPedido> itens) {
+        String sql = "INSERT INTO pedido_itens (pedido_id, produto_nome, quantidade, preco_unitario) VALUES (?, ?, ?, ?)";
+
+        System.out.println("📝 salvarItensPedido() chamado: pedidoId=" + pedidoId + ", itens=" + (itens != null ? itens.size() : "null"));
+
+        if (itens == null || itens.isEmpty()) {
+            System.out.println("⚠️  Lista de itens vazia - nenhum item será salvo");
+            return;
+        }
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+
+            for (ItemPedido item : itens) {
+                pstmt.setInt(1, pedidoId);
+                pstmt.setString(2, item.getNomeProduto());
+                pstmt.setInt(3, item.getQuantidade());
+                int centavos = item.getPrecoUnitario().multiply(BigDecimal.valueOf(100)).intValue();
+                pstmt.setInt(4, centavos);
+                pstmt.addBatch();
+            }
+
+            int[] result = pstmt.executeBatch();
+            System.out.println("✅ " + result.length + " itens do pedido inseridos com sucesso");
+            pstmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao salvar itens do pedido: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+
+    /**
+     * Monta um objeto Pedido a partir de uma linha da tabela `pedidos`,
+     * já carregando seus itens (tabela pedido_itens). Usado tanto por
+     * carregarPedidos() quanto por carregarPedidosPorPeriodo(), pra não
+     * duplicar a lógica de leitura/conversão em dois lugares.
+     */
+    private Pedido mapearPedido(ResultSet rs) throws SQLException {
+        Pedido p = new Pedido();
+        p.setId(rs.getInt("id"));
+        p.setNomeCliente(rs.getString("nome_cliente"));
+        p.setTelefone(rs.getString("telefone"));
+        p.setEndereco(rs.getString("endereco"));
+
+        int taxaCentavos = rs.getInt("taxa_entrega");
+        p.setTaxaEntrega(BigDecimal.valueOf(taxaCentavos).divide(BigDecimal.valueOf(100)));
+
+        int totalCentavos = rs.getInt("total");
+        p.setTotal(BigDecimal.valueOf(totalCentavos).divide(BigDecimal.valueOf(100)));
+
+        p.setDataHora(LocalDateTime.parse(rs.getString("data_hora")));
+
+        p.setItens(carregarItensPedido(p.getId()));
+
+        return p;
+    }
+
+    private List<ItemPedido> carregarItensPedido(int pedidoId) {
+        List<ItemPedido> itens = new ArrayList<>();
+        String sql = "SELECT * FROM pedido_itens WHERE pedido_id = ?";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, pedidoId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String nomeProduto = rs.getString("produto_nome");
+                int quantidade = rs.getInt("quantidade");
+                int centavos = rs.getInt("preco_unitario");
+                BigDecimal precoUnitario = BigDecimal.valueOf(centavos).divide(BigDecimal.valueOf(100));
+
+                itens.add(new ItemPedido(nomeProduto, quantidade, precoUnitario));
+            }
+
+            rs.close();
+            pstmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao carregar itens do pedido: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return itens;
+    }
+
+    public List<Pedido> carregarPedidos() {
+        List<Pedido> pedidos = new ArrayList<>();
+        String sql = "SELECT * FROM pedidos ORDER BY data_hora DESC";
+
+        try {
+            Connection conn = Database.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                pedidos.add(mapearPedido(rs));
+            }
+
+            rs.close();
+            stmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao carregar pedidos: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return pedidos;
+    }
+
+    /**
+     * Carrega pedidos cuja data_hora está entre `inicio` e `fim` (inclusive).
+     * data_hora é salva como String no formato ISO-8601 (LocalDateTime.toString()),
+     * que ordena corretamente como texto — por isso a comparação funciona direto
+     * na cláusula WHERE sem precisar converter tipo no SQLite.
+     */
+    public List<Pedido> carregarPedidosPorPeriodo(LocalDateTime inicio, LocalDateTime fim) {
+        List<Pedido> pedidos = new ArrayList<>();
+        String sql = "SELECT * FROM pedidos WHERE data_hora >= ? AND data_hora <= ? ORDER BY data_hora DESC";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, inicio.toString());
+            pstmt.setString(2, fim.toString());
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                pedidos.add(mapearPedido(rs));
+            }
+
+            rs.close();
+            pstmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao carregar pedidos por período: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return pedidos;
+    }
+
+    /**
+     * Atalho de conveniência: calcula o intervalo de datas a partir de um
+     * PeriodoFiltro (DIARIO/SEMANAL/MENSAL), sempre relativo a "agora".
+     *
+     * DIARIO  -> desde a meia-noite de hoje
+     * SEMANAL -> últimos 7 dias (hoje + 6 dias anteriores)
+     * MENSAL  -> desde o dia 1 do mês atual
+     */
+    public List<Pedido> carregarPedidosPorPeriodo(PeriodoFiltro periodo) {
+        LocalDateTime fim = LocalDateTime.now();
+        LocalDateTime inicio;
+
+        switch (periodo) {
+            case DIARIO -> inicio = fim.toLocalDate().atStartOfDay();
+            case SEMANAL -> inicio = fim.toLocalDate().minusDays(6).atStartOfDay();
+            case MENSAL -> inicio = fim.toLocalDate().withDayOfMonth(1).atStartOfDay();
+            default -> inicio = fim.toLocalDate().atStartOfDay();
+        }
+
+        return carregarPedidosPorPeriodo(inicio, fim);
+    }
+
+
+    // ==========================================
+// MÉTODOS PARA ADICIONAIS
+// ==========================================
 
     public List<Adicional> carregarAdicionais() {
         List<Adicional> adicionais = new ArrayList<>();
@@ -260,6 +448,10 @@ public class DadosDAO {
             e.printStackTrace();
         }
     }
+
+    // ==========================================
+// MÉTODOS PARA COMBOS
+// ==========================================
 
     private List<ItemCombo> carregarItensCombo(int comboId) {
         List<ItemCombo> itens = new ArrayList<>();
@@ -363,6 +555,11 @@ public class DadosDAO {
             System.out.println("   INSERT combo: " + affectedRows + " linha(s) afetada(s)");
 
             if (affectedRows > 0) {
+                // 🔧 CORREÇÃO: getGeneratedKeys() não é suportado por esta versão
+                // do driver sqlite-jdbc (lançava SQLFeatureNotSupportedException e
+                // interrompia o método antes de salvar itens/adicionais). Trocado
+                // por SELECT last_insert_rowid(), que é nativo do SQLite e sempre
+                // funciona na mesma conexão logo após o INSERT.
                 int comboId = (int) ultimoIdInserido(conn);
                 c.setId(comboId);
                 System.out.println("   ✅ Combo inserido com ID: " + comboId);
@@ -580,6 +777,8 @@ public class DadosDAO {
         }
     }
 
+    // MÉTODOS PARA CENTOS
+
     public List<Cento> carregarCentos() {
         List<Cento> centos = new ArrayList<>();
         String sql = "SELECT * FROM centos";
@@ -597,6 +796,7 @@ public class DadosDAO {
                 c.setPrecoTotal(BigDecimal.valueOf(centavos).divide(BigDecimal.valueOf(100)));
                 c.setMaxSabores(rs.getInt("max_sabores"));
 
+                // Carrega os itens do cento
                 c.setItens(carregarItensCento(c.getId()));
 
                 centos.add(c);
@@ -662,6 +862,8 @@ public class DadosDAO {
             pstmt.close();
 
             if (affectedRows > 0) {
+                // 🔧 CORREÇÃO: mesmo problema do salvarCombo() - getGeneratedKeys()
+                // não suportado por este driver. Usando last_insert_rowid().
                 int centoId = (int) ultimoIdInserido(conn);
                 c.setId(centoId);
                 salvarItensCento(centoId, c.getItens());
