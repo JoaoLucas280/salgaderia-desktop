@@ -16,6 +16,9 @@ public class TelaPrincipal extends JFrame {
         TelaPedido telaPedido = new TelaPedido(this);
         tabbedPane.addTab("📝 Pedidos", telaPedido);
 
+        TelaHistoricoPedidos telaHistorico = new TelaHistoricoPedidos(this);
+        tabbedPane.addTab("📜 Histórico", telaHistorico);
+
         TelaAdmin telaAdmin = new TelaAdmin(this);
         tabbedPane.addTab("🔧 Admin", telaAdmin);
 
@@ -28,13 +31,17 @@ public class TelaPrincipal extends JFrame {
         tabbedPane.addTab("📊 Dashboard", placeholderDashboard);
 
         tabbedPane.addChangeListener(e -> {
-            if (tabbedPane.getSelectedComponent() == telaPedido) {
+            Component selecionado = tabbedPane.getSelectedComponent();
+            if (selecionado == telaPedido) {
                 telaPedido.atualizarListas();
+            } else if (selecionado == telaHistorico) {
+                telaHistorico.atualizarLista();
             }
         });
 
         add(tabbedPane, BorderLayout.CENTER);
 
+        // Rodapé
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         rodape.add(new JLabel("v1.0 - Salgaderia Manager"));
         add(rodape, BorderLayout.SOUTH);
