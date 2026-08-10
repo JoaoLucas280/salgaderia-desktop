@@ -23,10 +23,12 @@ public class TelaPedido extends JPanel {
     private final DadosDAO dao;
     private final PedidoService pedidoService;
 
+
     private JTextField campoNome;
     private JTextField campoTelefone;
     private JTextField campoEndereco;
     private JTextField campoTaxa;
+
 
     private JComboBox<Combo> comboCombos;
     private JButton botaoMontarCombo;
@@ -43,16 +45,20 @@ public class TelaPedido extends JPanel {
     private JSpinner spinnerAdicionalQtd;
     private JButton botaoAdicionarAdicional;
 
+
     private DefaultListModel<String> modelListaItens;
     private JList<String> listaItens;
     private JButton botaoRemoverItem;
     private JButton botaoEditarItem;
 
+
     private JLabel labelSubtotal;
     private JLabel labelTotal;
 
+
     private JButton botaoSalvar;
     private JButton botaoLimpar;
+
 
     private List<ItemPedido> itensPedido;
     private int proximoIdPedido = 1;
@@ -70,19 +76,19 @@ public class TelaPedido extends JPanel {
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
 
+        // Painel Cliente (Norte)
         JPanel painelCliente = criarPainelCliente();
         add(painelCliente, BorderLayout.NORTH);
 
+        // Painel Produtos (Centro)
         JPanel painelProdutos = criarPainelProdutos();
         add(painelProdutos, BorderLayout.CENTER);
 
+        // Painel Rodapé (Sul)
         JPanel painelRodape = criarPainelRodape();
         add(painelRodape, BorderLayout.SOUTH);
     }
 
-    // ==========================================
-    // PAINEL CLIENTE
-    // ==========================================
 
     private JPanel criarPainelCliente() {
         JPanel painel = new JPanel(new GridBagLayout());
@@ -92,6 +98,7 @@ public class TelaPedido extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Nome
         gbc.gridx = 0; gbc.gridy = 0;
         gbc.gridwidth = 1;
         painel.add(new JLabel("Nome:"), gbc);
@@ -102,6 +109,7 @@ public class TelaPedido extends JPanel {
         campoNome.setPreferredSize(new Dimension(250, 30));
         painel.add(campoNome, gbc);
 
+        // Telefone
         gbc.gridx = 0; gbc.gridy = 1;
         gbc.gridwidth = 1;
         painel.add(new JLabel("Telefone:"), gbc);
@@ -112,6 +120,7 @@ public class TelaPedido extends JPanel {
         campoTelefone.setPreferredSize(new Dimension(150, 30));
         painel.add(campoTelefone, gbc);
 
+        // Endereço
         gbc.gridx = 0; gbc.gridy = 2;
         gbc.gridwidth = 1;
         painel.add(new JLabel("Endereço:"), gbc);
@@ -122,6 +131,7 @@ public class TelaPedido extends JPanel {
         campoEndereco.setPreferredSize(new Dimension(250, 30));
         painel.add(campoEndereco, gbc);
 
+        // Taxa
         gbc.gridx = 0; gbc.gridy = 3;
         gbc.gridwidth = 1;
         painel.add(new JLabel("Taxa Entrega (R$):"), gbc);
@@ -133,6 +143,7 @@ public class TelaPedido extends JPanel {
         campoTaxa.setEnabled(false);
         painel.add(campoTaxa, gbc);
 
+        // Listener para habilitar taxa
         campoEndereco.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) { habilitarTaxa(); }
@@ -156,10 +167,6 @@ public class TelaPedido extends JPanel {
         atualizarTotais();
     }
 
-    // ==========================================
-    // PAINEL PRODUTOS
-    // ==========================================
-
     private JPanel criarPainelProdutos() {
         JPanel painel = new JPanel(new BorderLayout(5, 5));
         painel.setBorder(BorderFactory.createTitledBorder(
@@ -170,6 +177,7 @@ public class TelaPedido extends JPanel {
                 new Font("Arial", Font.BOLD, 14)
         ));
 
+        // Abas
         JTabbedPane abas = new JTabbedPane();
         abas.addTab("🧩 Combos", criarAbaCombos());
         abas.addTab("📦 Centos", criarAbaCentos());
@@ -249,6 +257,7 @@ public class TelaPedido extends JPanel {
         return painel;
     }
 
+
     private JPanel criarAbaUnitarios() {
         JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
@@ -266,13 +275,13 @@ public class TelaPedido extends JPanel {
         botaoAdicionarUnitario.addActionListener(e -> adicionarUnitario());
         painel.add(botaoAdicionarUnitario);
 
-        // 🆕 Botão para montar vários unitários de uma vez
         botaoMontarVariosUnitarios = new JButton("📋 Montar Vários");
         botaoMontarVariosUnitarios.addActionListener(e -> abrirMontagemUnitarios());
         painel.add(botaoMontarVariosUnitarios);
 
         return painel;
     }
+
 
     private JPanel criarAbaAdicionais() {
         JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
@@ -294,23 +303,20 @@ public class TelaPedido extends JPanel {
         return painel;
     }
 
-    // ==========================================
-    // CARREGAR DADOS
-    // ==========================================
-
     private void carregarDados() {
+        // Carrega combos
         List<Combo> combos = dao.carregarCombos();
         for (Combo c : combos) {
             comboCombos.addItem(c);
         }
 
-
+        // Carrega centos
         List<Cento> centos = dao.carregarCentos();
         for (Cento c : centos) {
             comboCentos.addItem(c);
         }
 
-
+        // Carrega unitários
         List<Produto> unitarios = dao.carregarProdutos();
         for (Produto p : unitarios) {
             if (p.getTipoProduto() == salgaderia.model.enums.tipoProduto.UNIDADE) {
@@ -318,7 +324,7 @@ public class TelaPedido extends JPanel {
             }
         }
 
-
+        // Carrega adicionais
         List<Adicional> adicionais = dao.carregarAdicionais();
         for (Adicional a : adicionais) {
             comboAdicionais.addItem(a);
@@ -485,6 +491,7 @@ public class TelaPedido extends JPanel {
         }
     }
 
+
     private void removerItemSelecionado() {
         int indice = listaItens.getSelectedIndex();
         if (indice < 0) {
@@ -496,6 +503,7 @@ public class TelaPedido extends JPanel {
         modelListaItens.remove(indice);
         atualizarTotais();
     }
+
 
     private void editarItemSelecionado() {
         int indice = listaItens.getSelectedIndex();
@@ -513,7 +521,7 @@ public class TelaPedido extends JPanel {
         );
 
         if (novaQtdStr == null) {
-            return; // usuário cancelou
+            return;
         }
 
         try {
@@ -565,7 +573,7 @@ public class TelaPedido extends JPanel {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
         painel.setBorder(BorderFactory.createEtchedBorder());
 
-
+        // Totais
         JPanel painelTotais = new JPanel(new GridLayout(2, 2, 10, 5));
         painelTotais.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -582,6 +590,7 @@ public class TelaPedido extends JPanel {
 
         painel.add(painelTotais, BorderLayout.CENTER);
 
+        // Botões
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         botaoSalvar = new JButton("💾 Salvar Pedido");
@@ -646,15 +655,20 @@ public class TelaPedido extends JPanel {
 
         JOptionPane.showMessageDialog(this, "✅ Pedido #" + pedido.getId() + " salvo com sucesso!");
 
+
+        LancamentoFinanceiro lancamentoAutomatico = lancarPedidoComoEntrada(pedido);
+
         int opcaoLancamento = JOptionPane.showConfirmDialog(
                 this,
-                "Deseja lançar este pedido como entrada financeira?",
-                "Lançar entrada",
+                "Foi lançada automaticamente uma entrada financeira de R$ "
+                        + String.format("%.2f", pedido.getTotal().doubleValue())
+                        + " para este pedido.\nDeseja mantê-la?",
+                "Entrada financeira",
                 JOptionPane.YES_NO_OPTION
         );
 
-        if (opcaoLancamento == JOptionPane.YES_OPTION) {
-            lancarPedidoComoEntrada(pedido);
+        if (opcaoLancamento == JOptionPane.NO_OPTION) {
+            dao.deletarLancamento(lancamentoAutomatico.getId());
         }
 
         int opcao = JOptionPane.showConfirmDialog(
@@ -671,7 +685,7 @@ public class TelaPedido extends JPanel {
         limparCampos();
     }
 
-    private void lancarPedidoComoEntrada(Pedido pedido) {
+    private LancamentoFinanceiro lancarPedidoComoEntrada(Pedido pedido) {
         LancamentoFinanceiro lancamento = new LancamentoFinanceiro();
         lancamento.setTipo(tipoLancamento.ENTRADA);
         lancamento.setCategoria("Venda de Pedido");
@@ -681,8 +695,8 @@ public class TelaPedido extends JPanel {
         lancamento.setPedidoId(pedido.getId());
 
         dao.salvarLancamento(lancamento);
+        return lancamento;
     }
-
 
     private void gerarNotaPedido(Pedido pedido) {
         JFileChooser fileChooser = new JFileChooser();

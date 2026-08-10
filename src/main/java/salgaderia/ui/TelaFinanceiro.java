@@ -60,6 +60,7 @@ public class TelaFinanceiro extends JPanel {
         add(criarPainelAcoes(), BorderLayout.SOUTH);
     }
 
+
     private JPanel criarPainelTopo() {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
 
@@ -119,6 +120,7 @@ public class TelaFinanceiro extends JPanel {
         return cartao;
     }
 
+
     private JPanel criarPainelCentral() {
         JPanel painel = new JPanel(new GridLayout(1, 2, 10, 10));
 
@@ -158,6 +160,7 @@ public class TelaFinanceiro extends JPanel {
 
         return painel;
     }
+
 
     private JPanel criarPainelAcoes() {
         JPanel painel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
@@ -269,12 +272,12 @@ public class TelaFinanceiro extends JPanel {
     }
 
     private void abrirDialogLancamento(LancamentoFinanceiro existente, tipoLancamento tipoPreSelecionado) {
-        DialogLancamento dialog = new DialogLancamento(parentFrame, existente);
+        DialogLancamento dialog = new DialogLancamento(parentFrame, existente, tipoPreSelecionado);
         dialog.setVisible(true);
 
         LancamentoFinanceiro lancamento = dialog.getLancamento();
         if (lancamento == null) {
-            return;
+            return; // cancelou
         }
 
         if (existente == null) {

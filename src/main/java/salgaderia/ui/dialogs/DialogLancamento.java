@@ -21,6 +21,7 @@ public class DialogLancamento extends JDialog {
     private static final String[] FORMAS_PAGAMENTO = {"-", "Dinheiro", "Pix", "Cartão de Crédito", "Cartão de Débito", "Outro"};
 
     private final LancamentoFinanceiro lancamentoExistente;
+    private final tipoLancamento tipoFixo;
     private LancamentoFinanceiro lancamentoSalvo;
     private boolean salvou = false;
 
@@ -33,8 +34,13 @@ public class DialogLancamento extends JDialog {
     private JTextField campoObservacao;
 
     public DialogLancamento(JFrame parent, LancamentoFinanceiro lancamentoExistente) {
-        super(parent, lancamentoExistente == null ? "➕ Novo Lançamento" : "✏️ Editar Lançamento", true);
+        this(parent, lancamentoExistente, null);
+    }
+
+    public DialogLancamento(JFrame parent, LancamentoFinanceiro lancamentoExistente, tipoLancamento tipoFixo) {
+        super(parent, tituloJanela(lancamentoExistente, tipoFixo), true);
         this.lancamentoExistente = lancamentoExistente;
+        this.tipoFixo = tipoFixo;
 
         initComponents();
         configurarJanela();
@@ -43,7 +49,26 @@ public class DialogLancamento extends JDialog {
             preencherCampos();
         } else {
             campoData.setText(LocalDate.now().format(FORMATO_DATA));
+
+            if (tipoFixo != null) {
+                comboTipo.setSelectedIndex(tipoFixo == tipoLancamento.ENTRADA ? 0 : 1);
+                comboTipo.setEnabled(false);
+                atualizarCategoriasDisponiveis();
+            }
         }
+    }
+
+    private static String tituloJanela(LancamentoFinanceiro existente, tipoLancamento tipoFixo) {
+        if (existente != null) {
+            return "✏️ Editar Lançamento";
+        }
+        if (tipoFixo == tipoLancamento.ENTRADA) {
+            return "🟢 Nova Entrada";
+        }
+        if (tipoFixo == tipoLancamento.SAIDA) {
+            return "🔴 Nova Saída";
+        }
+        return "➕ Novo Lançamento";
     }
 
     private void initComponents() {
@@ -70,7 +95,7 @@ public class DialogLancamento extends JDialog {
 
         gbc.gridx = 1; gbc.gridy = linha; gbc.gridwidth = 2; gbc.weightx = 1.0;
         comboCategoria = new JComboBox<>(CATEGORIAS_ENTRADA);
-        comboCategoria.setEditable(true);
+        comboCategoria.setEditable(true); // permite digitar uma categoria fora da lista sugerida
         add(comboCategoria, gbc);
         linha++;
 
@@ -137,6 +162,7 @@ public class DialogLancamento extends JDialog {
         gbc.gridx = 0; gbc.gridy = linha; gbc.gridwidth = 3;
         add(painelBotoes, gbc);
     }
+
 
     private void atualizarCategoriasDisponiveis() {
         Object textoAtual = comboCategoria.getEditor().getItem();
