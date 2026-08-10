@@ -2,10 +2,12 @@ package salgaderia.dao;
 
 import salgaderia.model.*;
 import salgaderia.model.enums.tipoProduto;
+import salgaderia.model.enums.tipoLancamento;
 import salgaderia.model.enums.PeriodoFiltro;
 
 import java.sql.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -959,5 +961,184 @@ public class DadosDAO {
             System.err.println("❌ Erro ao deletar cento: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    // ==========================================
+    // MÉTODOS PARA LANÇAMENTOS FINANCEIROS
+    // ==========================================
+
+    public void salvarLancamento(LancamentoFinanceiro l) {
+        String sql = "INSERT INTO lancamentos (tipo, categoria, descricao, valor, data, forma_pagamento, observacao, pedido_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+
+            pstmt.setString(1, l.getTipo().name());
+            pstmt.setString(2, l.getCategoria());
+            pstmt.setString(3, l.getDescricao());
+
+            int centavos = l.getValor().multiply(BigDecimal.valueOf(100)).intValue();
+            pstmt.setInt(4, centavos);
+
+            pstmt.setString(5, l.getData().toString());
+            pstmt.setString(6, l.getFormaPagamento());
+            pstmt.setString(7, l.getObservacao());
+
+            if (l.getPedidoId() != null) {
+                pstmt.setInt(8, l.getPedidoId());
+            } else {
+                pstmt.setNull(8, Types.INTEGER);
+            }
+
+            int affectedRows = pstmt.executeUpdate();
+            pstmt.close();
+
+            if (affectedRows > 0) {
+                int id = (int) ultimoIdInserido(conn);
+                l.setId(id);
+                System.out.println("✅ Lançamento salvo: " + l.getTipo() + " - " + l.getCategoria() + " (ID: " + id + ")");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao salvar lançamento: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void atualizarLancamento(LancamentoFinanceiro l) {
+        String sql = "UPDATE lancamentos SET tipo = ?, categoria = ?, descricao = ?, valor = ?, data = ?, " +
+                "forma_pagamento = ?, observacao = ? WHERE id = ?";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+
+            pstmt.setString(1, l.getTipo().name());
+            pstmt.setString(2, l.getCategoria());
+            pstmt.setString(3, l.getDescricao());
+
+            int centavos = l.getValor().multiply(BigDecimal.valueOf(100)).intValue();
+            pstmt.setInt(4, centavos);
+
+            pstmt.setString(5, l.getData().toString());
+            pstmt.setString(6, l.getFormaPagamento());
+            pstmt.setString(7, l.getObservacao());
+            pstmt.setInt(8, l.getId());
+
+            int rows = pstmt.executeUpdate();
+            pstmt.close();
+
+            System.out.println("✅ Lançamento atualizado: ID " + l.getId() + " (" + rows + " linha(s) afetada(s))");
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao atualizar lançamento: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void deletarLancamento(int id) {
+        String sql = "DELETE FROM lancamentos WHERE id = ?";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+            pstmt.close();
+
+            System.out.println("✅ Lançamento deletado: ID " + id);
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao deletar lançamento: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private LancamentoFinanceiro mapearLancamento(ResultSet rs) throws SQLException {
+        LancamentoFinanceiro l = new LancamentoFinanceiro();
+        l.setId(rs.getInt("id"));
+        l.setTipo(tipoLancamento.valueOf(rs.getString("tipo")));
+        l.setCategoria(rs.getString("categoria"));
+        l.setDescricao(rs.getString("descricao"));
+
+        int centavos = rs.getInt("valor");
+        l.setValor(BigDecimal.valueOf(centavos).divide(BigDecimal.valueOf(100)));
+
+        l.setData(LocalDate.parse(rs.getString("data")));
+        l.setFormaPagamento(rs.getString("forma_pagamento"));
+        l.setObservacao(rs.getString("observacao"));
+
+        int pedidoId = rs.getInt("pedido_id");
+        l.setPedidoId(rs.wasNull() ? null : pedidoId);
+
+        return l;
+    }
+
+    public List<LancamentoFinanceiro> carregarLancamentos() {
+        List<LancamentoFinanceiro> lancamentos = new ArrayList<>();
+        String sql = "SELECT * FROM lancamentos ORDER BY data DESC, id DESC";
+
+        try {
+            Connection conn = Database.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                lancamentos.add(mapearLancamento(rs));
+            }
+
+            rs.close();
+            stmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao carregar lançamentos: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return lancamentos;
+    }
+
+    public List<LancamentoFinanceiro> carregarLancamentosPorPeriodo(LocalDate inicio, LocalDate fim) {
+        List<LancamentoFinanceiro> lancamentos = new ArrayList<>();
+        String sql = "SELECT * FROM lancamentos WHERE data >= ? AND data <= ? ORDER BY data DESC, id DESC";
+
+        try {
+            Connection conn = Database.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, inicio.toString());
+            pstmt.setString(2, fim.toString());
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                lancamentos.add(mapearLancamento(rs));
+            }
+
+            rs.close();
+            pstmt.close();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao carregar lançamentos por período: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return lancamentos;
+    }
+
+    /**
+     * Atalho de conveniência, no mesmo espírito de carregarPedidosPorPeriodo(PeriodoFiltro).
+     * DIARIO -> só hoje | SEMANAL -> últimos 7 dias | MENSAL -> desde o dia 1 do mês atual
+     */
+    public List<LancamentoFinanceiro> carregarLancamentosPorPeriodo(PeriodoFiltro periodo) {
+        LocalDate fim = LocalDate.now();
+        LocalDate inicio;
+
+        switch (periodo) {
+            case DIARIO -> inicio = fim;
+            case SEMANAL -> inicio = fim.minusDays(6);
+            case MENSAL -> inicio = fim.withDayOfMonth(1);
+            default -> inicio = fim;
+        }
+
+        return carregarLancamentosPorPeriodo(inicio, fim);
     }
 }
