@@ -1,5 +1,7 @@
 package salgaderia.model;
 
+import salgaderia.model.enums.StatusPedido;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,8 +17,10 @@ public class Pedido {
     private List<ItemPedido> itens;
     private BigDecimal total;
     private LocalDateTime dataHora;
+    private StatusPedido status;
 
     public Pedido() {
+        this.status = StatusPedido.PENDENTE;
     }
 
     public Pedido(int id, String nomeCliente, List<ItemPedido> itens,
@@ -26,6 +30,7 @@ public class Pedido {
         this.itens = itens;
         this.total = total;
         this.dataHora = dataHora;
+        this.status = StatusPedido.PENDENTE;
     }
 
     public int getId() {
@@ -92,14 +97,22 @@ public class Pedido {
         this.dataHora = dataHora;
     }
 
+    public StatusPedido getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusPedido status) {
+        this.status = status;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Pedido pedido)) return false;
-        return Objects.equals(getId(), pedido.getId()) && Objects.equals(getNomeCliente(), pedido.getNomeCliente()) && Objects.equals(getTelefone(), pedido.getTelefone()) && Objects.equals(getEndereco(), pedido.getEndereco()) && Objects.equals(getTaxaEntrega(), pedido.getTaxaEntrega()) && Objects.equals(getItens(), pedido.getItens()) && Objects.equals(getTotal(), pedido.getTotal()) && Objects.equals(getDataHora(), pedido.getDataHora());
+        return Objects.equals(getId(), pedido.getId()) && Objects.equals(getNomeCliente(), pedido.getNomeCliente()) && Objects.equals(getTelefone(), pedido.getTelefone()) && Objects.equals(getEndereco(), pedido.getEndereco()) && Objects.equals(getTaxaEntrega(), pedido.getTaxaEntrega()) && Objects.equals(getItens(), pedido.getItens()) && Objects.equals(getTotal(), pedido.getTotal()) && Objects.equals(getDataHora(), pedido.getDataHora()) && getStatus() == pedido.getStatus();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getNomeCliente(), getTelefone(), getEndereco(), getTaxaEntrega(), getItens(), getTotal(), getDataHora());
+        return Objects.hash(getId(), getNomeCliente(), getTelefone(), getEndereco(), getTaxaEntrega(), getItens(), getTotal(), getDataHora(), getStatus());
     }
 }
