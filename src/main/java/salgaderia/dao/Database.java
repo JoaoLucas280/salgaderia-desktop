@@ -13,6 +13,7 @@ public class Database {
                 System.out.println("🔍 Abrindo conexão com o banco...");
                 connection = DriverManager.getConnection(URL);
                 criarTabelas();
+                migrarSchema();
                 System.out.println(" Conexão estabelecida com sucesso!");
             }
         } catch (SQLException e) {
@@ -146,6 +147,38 @@ public class Database {
         }
     }
 
+    private static void migrarSchema() {
+        adicionarColunaSeNaoExistir("pedidos", "status", "TEXT DEFAULT 'PENDENTE'");
+    }
+
+    private static void adicionarColunaSeNaoExistir(String tabela, String coluna, String definicaoTipo) {
+        if (colunaExiste(tabela, coluna)) {
+            return;
+        }
+
+        String sql = "ALTER TABLE " + tabela + " ADD COLUMN " + coluna + " " + definicaoTipo;
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
+            System.out.println("✅ Coluna '" + coluna + "' adicionada à tabela '" + tabela + "'.");
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao adicionar coluna '" + coluna + "' em '" + tabela + "': " + e.getMessage());
+        }
+    }
+
+    private static boolean colunaExiste(String tabela, String coluna) {
+        String sql = "PRAGMA table_info(" + tabela + ")";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                if (rs.getString("name").equalsIgnoreCase(coluna)) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao verificar coluna '" + coluna + "' em '" + tabela + "': " + e.getMessage());
+        }
+        return false;
+    }
 
     public static void closeConnection() {
         try {
