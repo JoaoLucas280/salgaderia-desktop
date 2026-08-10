@@ -1,6 +1,6 @@
 package salgaderia.model.enums;
 
-public enum tipoLancamentoFinanceiro {
+public enum tipoLancamento {
     ENTRADA,
     SAIDA;
 }
