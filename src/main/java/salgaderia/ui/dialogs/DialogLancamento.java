@@ -70,7 +70,7 @@ public class DialogLancamento extends JDialog {
 
         gbc.gridx = 1; gbc.gridy = linha; gbc.gridwidth = 2; gbc.weightx = 1.0;
         comboCategoria = new JComboBox<>(CATEGORIAS_ENTRADA);
-        comboCategoria.setEditable(true); // permite digitar uma categoria fora da lista sugerida
+        comboCategoria.setEditable(true);
         add(comboCategoria, gbc);
         linha++;
 
@@ -138,11 +138,6 @@ public class DialogLancamento extends JDialog {
         add(painelBotoes, gbc);
     }
 
-    /**
-     * Troca a lista de categorias sugeridas conforme o tipo selecionado
-     * (entrada e saída têm categorias bem diferentes na prática).
-     * Preserva o texto digitado se o usuário já tiver escrito algo customizado.
-     */
     private void atualizarCategoriasDisponiveis() {
         Object textoAtual = comboCategoria.getEditor().getItem();
 

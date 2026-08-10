@@ -2,6 +2,7 @@ package salgaderia.ui;
 
 import salgaderia.dao.DadosDAO;
 import salgaderia.model.*;
+import salgaderia.model.enums.tipoLancamento;
 import salgaderia.service.PedidoService;
 import salgaderia.service.ReciboService;
 import salgaderia.util.StyleConfig;
@@ -79,6 +80,10 @@ public class TelaPedido extends JPanel {
         add(painelRodape, BorderLayout.SOUTH);
     }
 
+    // ==========================================
+    // PAINEL CLIENTE
+    // ==========================================
+
     private JPanel criarPainelCliente() {
         JPanel painel = new JPanel(new GridBagLayout());
         painel.setBorder(StyleConfig.criarBorda("📋 Dados do Cliente"));
@@ -150,6 +155,10 @@ public class TelaPedido extends JPanel {
         }
         atualizarTotais();
     }
+
+    // ==========================================
+    // PAINEL PRODUTOS
+    // ==========================================
 
     private JPanel criarPainelProdutos() {
         JPanel painel = new JPanel(new BorderLayout(5, 5));
@@ -257,6 +266,7 @@ public class TelaPedido extends JPanel {
         botaoAdicionarUnitario.addActionListener(e -> adicionarUnitario());
         painel.add(botaoAdicionarUnitario);
 
+        // 🆕 Botão para montar vários unitários de uma vez
         botaoMontarVariosUnitarios = new JButton("📋 Montar Vários");
         botaoMontarVariosUnitarios.addActionListener(e -> abrirMontagemUnitarios());
         painel.add(botaoMontarVariosUnitarios);
@@ -284,16 +294,22 @@ public class TelaPedido extends JPanel {
         return painel;
     }
 
+    // ==========================================
+    // CARREGAR DADOS
+    // ==========================================
+
     private void carregarDados() {
         List<Combo> combos = dao.carregarCombos();
         for (Combo c : combos) {
             comboCombos.addItem(c);
         }
 
+
         List<Cento> centos = dao.carregarCentos();
         for (Cento c : centos) {
             comboCentos.addItem(c);
         }
+
 
         List<Produto> unitarios = dao.carregarProdutos();
         for (Produto p : unitarios) {
@@ -301,6 +317,7 @@ public class TelaPedido extends JPanel {
                 comboUnitarios.addItem(p);
             }
         }
+
 
         List<Adicional> adicionais = dao.carregarAdicionais();
         for (Adicional a : adicionais) {
@@ -548,6 +565,7 @@ public class TelaPedido extends JPanel {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
         painel.setBorder(BorderFactory.createEtchedBorder());
 
+
         JPanel painelTotais = new JPanel(new GridLayout(2, 2, 10, 5));
         painelTotais.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -628,6 +646,17 @@ public class TelaPedido extends JPanel {
 
         JOptionPane.showMessageDialog(this, "✅ Pedido #" + pedido.getId() + " salvo com sucesso!");
 
+        int opcaoLancamento = JOptionPane.showConfirmDialog(
+                this,
+                "Deseja lançar este pedido como entrada financeira?",
+                "Lançar entrada",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (opcaoLancamento == JOptionPane.YES_OPTION) {
+            lancarPedidoComoEntrada(pedido);
+        }
+
         int opcao = JOptionPane.showConfirmDialog(
                 this,
                 "Deseja gerar a nota (Excel) deste pedido agora?",
@@ -641,6 +670,19 @@ public class TelaPedido extends JPanel {
 
         limparCampos();
     }
+
+    private void lancarPedidoComoEntrada(Pedido pedido) {
+        LancamentoFinanceiro lancamento = new LancamentoFinanceiro();
+        lancamento.setTipo(tipoLancamento.ENTRADA);
+        lancamento.setCategoria("Venda de Pedido");
+        lancamento.setDescricao("Pedido #" + pedido.getId() + " - " + pedido.getNomeCliente());
+        lancamento.setValor(pedido.getTotal());
+        lancamento.setData(pedido.getDataHora().toLocalDate());
+        lancamento.setPedidoId(pedido.getId());
+
+        dao.salvarLancamento(lancamento);
+    }
+
 
     private void gerarNotaPedido(Pedido pedido) {
         JFileChooser fileChooser = new JFileChooser();
