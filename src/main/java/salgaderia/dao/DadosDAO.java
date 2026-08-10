@@ -26,12 +26,6 @@ public class DadosDAO {
         return instance;
     }
 
-    /**
-     * 🔧 Helper: retorna o ID da última linha inserida na conexão atual.
-     * Usado no lugar de PreparedStatement.getGeneratedKeys(), que não é
-     * suportado pela versão do driver sqlite-jdbc usada neste projeto
-     * (lança SQLFeatureNotSupportedException).
-     */
     private long ultimoIdInserido(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
@@ -223,12 +217,6 @@ public class DadosDAO {
         }
     }
 
-    /**
-     * Monta um objeto Pedido a partir de uma linha da tabela `pedidos`,
-     * já carregando seus itens (tabela pedido_itens). Usado tanto por
-     * carregarPedidos() quanto por carregarPedidosPorPeriodo(), pra não
-     * duplicar a lógica de leitura/conversão em dois lugares.
-     */
     private Pedido mapearPedido(ResultSet rs) throws SQLException {
         Pedido p = new Pedido();
         p.setId(rs.getInt("id"));
@@ -301,12 +289,7 @@ public class DadosDAO {
         return pedidos;
     }
 
-    /**
-     * Carrega pedidos cuja data_hora está entre `inicio` e `fim` (inclusive).
-     * data_hora é salva como String no formato ISO-8601 (LocalDateTime.toString()),
-     * que ordena corretamente como texto — por isso a comparação funciona direto
-     * na cláusula WHERE sem precisar converter tipo no SQLite.
-     */
+
     public List<Pedido> carregarPedidosPorPeriodo(LocalDateTime inicio, LocalDateTime fim) {
         List<Pedido> pedidos = new ArrayList<>();
         String sql = "SELECT * FROM pedidos WHERE data_hora >= ? AND data_hora <= ? ORDER BY data_hora DESC";
@@ -332,14 +315,6 @@ public class DadosDAO {
         return pedidos;
     }
 
-    /**
-     * Atalho de conveniência: calcula o intervalo de datas a partir de um
-     * PeriodoFiltro (DIARIO/SEMANAL/MENSAL), sempre relativo a "agora".
-     *
-     * DIARIO  -> desde a meia-noite de hoje
-     * SEMANAL -> últimos 7 dias (hoje + 6 dias anteriores)
-     * MENSAL  -> desde o dia 1 do mês atual
-     */
     public List<Pedido> carregarPedidosPorPeriodo(PeriodoFiltro periodo) {
         LocalDateTime fim = LocalDateTime.now();
         LocalDateTime inicio;
@@ -355,9 +330,6 @@ public class DadosDAO {
     }
 
 
-    // ==========================================
-// MÉTODOS PARA ADICIONAIS
-// ==========================================
 
     public List<Adicional> carregarAdicionais() {
         List<Adicional> adicionais = new ArrayList<>();
@@ -451,9 +423,6 @@ public class DadosDAO {
         }
     }
 
-    // ==========================================
-// MÉTODOS PARA COMBOS
-// ==========================================
 
     private List<ItemCombo> carregarItensCombo(int comboId) {
         List<ItemCombo> itens = new ArrayList<>();
@@ -557,11 +526,6 @@ public class DadosDAO {
             System.out.println("   INSERT combo: " + affectedRows + " linha(s) afetada(s)");
 
             if (affectedRows > 0) {
-                // 🔧 CORREÇÃO: getGeneratedKeys() não é suportado por esta versão
-                // do driver sqlite-jdbc (lançava SQLFeatureNotSupportedException e
-                // interrompia o método antes de salvar itens/adicionais). Trocado
-                // por SELECT last_insert_rowid(), que é nativo do SQLite e sempre
-                // funciona na mesma conexão logo após o INSERT.
                 int comboId = (int) ultimoIdInserido(conn);
                 c.setId(comboId);
                 System.out.println("   ✅ Combo inserido com ID: " + comboId);
@@ -779,7 +743,7 @@ public class DadosDAO {
         }
     }
 
-    // MÉTODOS PARA CENTOS
+
 
     public List<Cento> carregarCentos() {
         List<Cento> centos = new ArrayList<>();
@@ -798,7 +762,6 @@ public class DadosDAO {
                 c.setPrecoTotal(BigDecimal.valueOf(centavos).divide(BigDecimal.valueOf(100)));
                 c.setMaxSabores(rs.getInt("max_sabores"));
 
-                // Carrega os itens do cento
                 c.setItens(carregarItensCento(c.getId()));
 
                 centos.add(c);
@@ -864,8 +827,6 @@ public class DadosDAO {
             pstmt.close();
 
             if (affectedRows > 0) {
-                // 🔧 CORREÇÃO: mesmo problema do salvarCombo() - getGeneratedKeys()
-                // não suportado por este driver. Usando last_insert_rowid().
                 int centoId = (int) ultimoIdInserido(conn);
                 c.setId(centoId);
                 salvarItensCento(centoId, c.getItens());
@@ -963,9 +924,6 @@ public class DadosDAO {
         }
     }
 
-    // ==========================================
-    // MÉTODOS PARA LANÇAMENTOS FINANCEIROS
-    // ==========================================
 
     public void salvarLancamento(LancamentoFinanceiro l) {
         String sql = "INSERT INTO lancamentos (tipo, categoria, descricao, valor, data, forma_pagamento, observacao, pedido_id) " +
@@ -1124,10 +1082,6 @@ public class DadosDAO {
         return lancamentos;
     }
 
-    /**
-     * Atalho de conveniência, no mesmo espírito de carregarPedidosPorPeriodo(PeriodoFiltro).
-     * DIARIO -> só hoje | SEMANAL -> últimos 7 dias | MENSAL -> desde o dia 1 do mês atual
-     */
     public List<LancamentoFinanceiro> carregarLancamentosPorPeriodo(PeriodoFiltro periodo) {
         LocalDate fim = LocalDate.now();
         LocalDate inicio;

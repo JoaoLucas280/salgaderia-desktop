@@ -16,7 +16,7 @@ public class LancamentoFinanceiro {
     private LocalDate data;
     private String formaPagamento;
     private String observacao;
-    private Integer pedidoId; // nullable - preenchido quando o lançamento vem de um pedido
+    private Integer pedidoId;
 
     public LancamentoFinanceiro() {
     }
