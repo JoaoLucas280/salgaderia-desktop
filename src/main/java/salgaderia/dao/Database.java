@@ -100,7 +100,9 @@ public class Database {
                 endereco TEXT,
                 taxa_entrega INTEGER DEFAULT 0,
                 total INTEGER NOT NULL,
-                data_hora TEXT NOT NULL
+                data_hora TEXT NOT NULL,
+                status TEXT DEFAULT 'PENDENTE',
+                forma_pagamento TEXT
             )
         """;
 
@@ -149,6 +151,7 @@ public class Database {
 
     private static void migrarSchema() {
         adicionarColunaSeNaoExistir("pedidos", "status", "TEXT DEFAULT 'PENDENTE'");
+        adicionarColunaSeNaoExistir("pedidos", "forma_pagamento", "TEXT");
     }
 
     private static void adicionarColunaSeNaoExistir(String tabela, String coluna, String definicaoTipo) {

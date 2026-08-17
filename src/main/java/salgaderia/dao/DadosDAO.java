@@ -143,7 +143,7 @@ public class DadosDAO {
 
 
     public void salvarPedido(Pedido pedido) {
-        String sql = "INSERT INTO pedidos (nome_cliente, telefone, endereco, taxa_entrega, total, data_hora, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO pedidos (nome_cliente, telefone, endereco, taxa_entrega, total, data_hora, status, forma_pagamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         System.out.println("🛒 salvarPedido() chamado: cliente=" + pedido.getNomeCliente() + ", itens=" + (pedido.getItens() != null ? pedido.getItens().size() : 0));
 
@@ -167,6 +167,8 @@ public class DadosDAO {
 
             StatusPedido status = pedido.getStatus() != null ? pedido.getStatus() : StatusPedido.PENDENTE;
             pstmt.setString(7, status.name());
+
+            pstmt.setString(8, pedido.getFormaPagamento());
 
             int affectedRows = pstmt.executeUpdate();
             pstmt.close();
@@ -238,6 +240,8 @@ public class DadosDAO {
         String statusTexto = rs.getString("status");
         p.setStatus(statusTexto != null ? StatusPedido.valueOf(statusTexto) : StatusPedido.PENDENTE);
 
+        p.setFormaPagamento(rs.getString("forma_pagamento"));
+
         p.setItens(carregarItensPedido(p.getId()));
 
         return p;
@@ -263,11 +267,7 @@ public class DadosDAO {
         }
     }
 
-    /**
-     * Busca lançamentos financeiros vinculados a um pedido específico.
-     * Usado ao cancelar um pedido, para oferecer a opção de remover junto
-     * a entrada financeira gerada automaticamente por ele.
-     */
+
     public List<LancamentoFinanceiro> carregarLancamentosPorPedidoId(int pedidoId) {
         List<LancamentoFinanceiro> lancamentos = new ArrayList<>();
         String sql = "SELECT * FROM lancamentos WHERE pedido_id = ?";
@@ -344,12 +344,7 @@ public class DadosDAO {
         return pedidos;
     }
 
-    /**
-     * Carrega pedidos cuja data_hora está entre `inicio` e `fim` (inclusive).
-     * data_hora é salva como String no formato ISO-8601 (LocalDateTime.toString()),
-     * que ordena corretamente como texto — por isso a comparação funciona direto
-     * na cláusula WHERE sem precisar converter tipo no SQLite.
-     */
+
     public List<Pedido> carregarPedidosPorPeriodo(LocalDateTime inicio, LocalDateTime fim) {
         List<Pedido> pedidos = new ArrayList<>();
         String sql = "SELECT * FROM pedidos WHERE data_hora >= ? AND data_hora <= ? ORDER BY data_hora DESC";
@@ -375,14 +370,7 @@ public class DadosDAO {
         return pedidos;
     }
 
-    /**
-     * Atalho de conveniência: calcula o intervalo de datas a partir de um
-     * PeriodoFiltro (DIARIO/SEMANAL/MENSAL), sempre relativo a "agora".
-     *
-     * DIARIO  -> desde a meia-noite de hoje
-     * SEMANAL -> últimos 7 dias (hoje + 6 dias anteriores)
-     * MENSAL  -> desde o dia 1 do mês atual
-     */
+
     public List<Pedido> carregarPedidosPorPeriodo(PeriodoFiltro periodo) {
         LocalDateTime fim = LocalDateTime.now();
         LocalDateTime inicio;
@@ -597,11 +585,7 @@ public class DadosDAO {
             System.out.println("   INSERT combo: " + affectedRows + " linha(s) afetada(s)");
 
             if (affectedRows > 0) {
-                // 🔧 CORREÇÃO: getGeneratedKeys() não é suportado por esta versão
-                // do driver sqlite-jdbc (lançava SQLFeatureNotSupportedException e
-                // interrompia o método antes de salvar itens/adicionais). Trocado
-                // por SELECT last_insert_rowid(), que é nativo do SQLite e sempre
-                // funciona na mesma conexão logo após o INSERT.
+
                 int comboId = (int) ultimoIdInserido(conn);
                 c.setId(comboId);
                 System.out.println("   ✅ Combo inserido com ID: " + comboId);
@@ -838,7 +822,7 @@ public class DadosDAO {
                 c.setPrecoTotal(BigDecimal.valueOf(centavos).divide(BigDecimal.valueOf(100)));
                 c.setMaxSabores(rs.getInt("max_sabores"));
 
-                // Carrega os itens do cento
+
                 c.setItens(carregarItensCento(c.getId()));
 
                 centos.add(c);
@@ -904,8 +888,6 @@ public class DadosDAO {
             pstmt.close();
 
             if (affectedRows > 0) {
-                // 🔧 CORREÇÃO: mesmo problema do salvarCombo() - getGeneratedKeys()
-                // não suportado por este driver. Usando last_insert_rowid().
                 int centoId = (int) ultimoIdInserido(conn);
                 c.setId(centoId);
                 salvarItensCento(centoId, c.getItens());
