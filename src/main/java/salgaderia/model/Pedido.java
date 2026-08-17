@@ -18,6 +18,7 @@ public class Pedido {
     private BigDecimal total;
     private LocalDateTime dataHora;
     private StatusPedido status;
+    private String formaPagamento;
 
     public Pedido() {
         this.status = StatusPedido.PENDENTE;
@@ -105,14 +106,22 @@ public class Pedido {
         this.status = status;
     }
 
+    public String getFormaPagamento() {
+        return formaPagamento;
+    }
+
+    public void setFormaPagamento(String formaPagamento) {
+        this.formaPagamento = formaPagamento;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Pedido pedido)) return false;
-        return Objects.equals(getId(), pedido.getId()) && Objects.equals(getNomeCliente(), pedido.getNomeCliente()) && Objects.equals(getTelefone(), pedido.getTelefone()) && Objects.equals(getEndereco(), pedido.getEndereco()) && Objects.equals(getTaxaEntrega(), pedido.getTaxaEntrega()) && Objects.equals(getItens(), pedido.getItens()) && Objects.equals(getTotal(), pedido.getTotal()) && Objects.equals(getDataHora(), pedido.getDataHora()) && getStatus() == pedido.getStatus();
+        return Objects.equals(getId(), pedido.getId()) && Objects.equals(getNomeCliente(), pedido.getNomeCliente()) && Objects.equals(getTelefone(), pedido.getTelefone()) && Objects.equals(getEndereco(), pedido.getEndereco()) && Objects.equals(getTaxaEntrega(), pedido.getTaxaEntrega()) && Objects.equals(getItens(), pedido.getItens()) && Objects.equals(getTotal(), pedido.getTotal()) && Objects.equals(getDataHora(), pedido.getDataHora()) && getStatus() == pedido.getStatus() && Objects.equals(getFormaPagamento(), pedido.getFormaPagamento());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getNomeCliente(), getTelefone(), getEndereco(), getTaxaEntrega(), getItens(), getTotal(), getDataHora(), getStatus());
+        return Objects.hash(getId(), getNomeCliente(), getTelefone(), getEndereco(), getTaxaEntrega(), getItens(), getTotal(), getDataHora(), getStatus(), getFormaPagamento());
     }
 }

@@ -15,6 +15,7 @@ public class ItemPedido {
     public ItemPedido(String nomeProduto, int quantidade) {
         this.nomeProduto = nomeProduto;
         this.quantidade = quantidade;
+        this.precoUnitario = BigDecimal.ZERO;
     }
 
     public ItemPedido(String nomeProduto, int quantidade, BigDecimal precoUnitario) {
