@@ -6,7 +6,6 @@ import salgaderia.util.StyleConfig;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +15,8 @@ public class TelaMontagemCombo extends JDialog {
     private final List<ItemPedido> itensSelecionados;
     private final List<JSpinner> spinners;
     private final List<Produto> produtos;
+    private final List<JCheckBox> checkBoxesAdicionais;
+    private final List<Adicional> adicionaisElegiveis;
     private JLabel labelTotal;
     private JButton botaoAdicionar;
     private boolean confirmado;
@@ -26,10 +27,12 @@ public class TelaMontagemCombo extends JDialog {
         this.itensSelecionados = new ArrayList<>();
         this.spinners = new ArrayList<>();
         this.produtos = new ArrayList<>();
+        this.checkBoxesAdicionais = new ArrayList<>();
+        this.adicionaisElegiveis = combo.getAdicionaisElegiveis();
         this.confirmado = false;
 
         initComponents();
-        setSize(550, 450);
+        setSize(550, combo.temAdicionaisElegiveis() ? 560 : 450);
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     }
@@ -94,6 +97,40 @@ public class TelaMontagemCombo extends JDialog {
             }
         }
 
+        JPanel painelAdicionais = new JPanel(new GridBagLayout());
+        if (combo.temAdicionaisElegiveis()) {
+            painelAdicionais.setBorder(BorderFactory.createTitledBorder(
+                    BorderFactory.createEtchedBorder(),
+                    "🥤 Adicionais (escolha até " + combo.getQuantidadeAdicionaisPermitidos() + ")",
+                    TitledBorder.DEFAULT_JUSTIFICATION,
+                    TitledBorder.DEFAULT_POSITION,
+                    new Font("Arial", Font.BOLD, 12)
+            ));
+
+            GridBagConstraints gbcAd = new GridBagConstraints();
+            gbcAd.insets = new Insets(5, 10, 5, 10);
+            gbcAd.fill = GridBagConstraints.HORIZONTAL;
+            gbcAd.gridx = 0;
+            gbcAd.weightx = 1;
+
+            int linhaAd = 0;
+            for (Adicional adicional : adicionaisElegiveis) {
+                gbcAd.gridy = linhaAd;
+                JCheckBox checkBox = new JCheckBox(adicional.getNome() + " (grátis no combo)");
+                checkBox.addActionListener(e -> atualizarLimiteAdicionais());
+                checkBoxesAdicionais.add(checkBox);
+                painelAdicionais.add(checkBox, gbcAd);
+                linhaAd++;
+            }
+        }
+
+        JPanel painelSaboresEAdicionais = new JPanel();
+        painelSaboresEAdicionais.setLayout(new BoxLayout(painelSaboresEAdicionais, BoxLayout.Y_AXIS));
+        painelSaboresEAdicionais.add(painelSabores);
+        if (combo.temAdicionaisElegiveis()) {
+            painelSaboresEAdicionais.add(painelAdicionais);
+        }
+
         JPanel painelTotal = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         painelTotal.add(new JLabel("Total:"));
         labelTotal = new JLabel("0 / " + combo.getQuantidadeMaximaDeItems());
@@ -118,7 +155,7 @@ public class TelaMontagemCombo extends JDialog {
 
         JPanel painelCentral = new JPanel(new BorderLayout(10, 10));
         painelCentral.add(painelInfo, BorderLayout.NORTH);
-        painelCentral.add(new JScrollPane(painelSabores), BorderLayout.CENTER);
+        painelCentral.add(new JScrollPane(painelSaboresEAdicionais), BorderLayout.CENTER);
         painelCentral.add(painelTotal, BorderLayout.SOUTH);
 
         add(painelCentral, BorderLayout.CENTER);
@@ -143,6 +180,17 @@ public class TelaMontagemCombo extends JDialog {
         }
     }
 
+    private void atualizarLimiteAdicionais() {
+        int selecionados = (int) checkBoxesAdicionais.stream().filter(JCheckBox::isSelected).count();
+        int limite = combo.getQuantidadeAdicionaisPermitidos();
+
+        for (JCheckBox checkBox : checkBoxesAdicionais) {
+            if (!checkBox.isSelected()) {
+                checkBox.setEnabled(selecionados < limite);
+            }
+        }
+    }
+
     private void adicionarItens() {
         itensSelecionados.clear();
         int total = 0;
@@ -152,7 +200,7 @@ public class TelaMontagemCombo extends JDialog {
             int quantidade = (int) spinners.get(i).getValue();
             if (quantidade > 0) {
                 Produto produto = produtos.get(i);
-                itensSelecionados.add(new ItemPedido(produto.getNomeProduto(), quantidade, produto.getPrecoUnitario()));
+                itensSelecionados.add(new ItemPedido(produto.getNomeProduto(), quantidade));
                 total += quantidade;
                 saboresEscolhidos++;
             }
@@ -171,6 +219,15 @@ public class TelaMontagemCombo extends JDialog {
         if (saboresEscolhidos > combo.getQuantidadeMaximaDeFlavors()) {
             JOptionPane.showMessageDialog(this, "Você pode escolher no máximo " + combo.getQuantidadeMaximaDeFlavors() + " sabores!");
             return;
+        }
+
+        itensSelecionados.add(0, new ItemPedido(combo.getNome(), 1, combo.getPrecoTotal()));
+
+        for (int i = 0; i < checkBoxesAdicionais.size(); i++) {
+            if (checkBoxesAdicionais.get(i).isSelected()) {
+                Adicional adicional = adicionaisElegiveis.get(i);
+                itensSelecionados.add(new ItemPedido(adicional.getNome(), 1));
+            }
         }
 
         confirmado = true;

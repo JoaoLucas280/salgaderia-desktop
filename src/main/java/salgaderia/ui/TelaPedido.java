@@ -5,6 +5,7 @@ import salgaderia.model.*;
 import salgaderia.model.enums.tipoLancamento;
 import salgaderia.service.PedidoService;
 import salgaderia.service.ReciboService;
+import salgaderia.ui.dialogs.DialogLancamento;
 import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
@@ -28,6 +29,7 @@ public class TelaPedido extends JPanel {
     private JTextField campoTelefone;
     private JTextField campoEndereco;
     private JTextField campoTaxa;
+    private JComboBox<String> comboFormaPagamento;
 
 
     private JComboBox<Combo> comboCombos;
@@ -142,6 +144,17 @@ public class TelaPedido extends JPanel {
         campoTaxa.setPreferredSize(new Dimension(100, 30));
         campoTaxa.setEnabled(false);
         painel.add(campoTaxa, gbc);
+
+        // Forma de pagamento
+        gbc.gridx = 2; gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        painel.add(new JLabel("Pagamento:"), gbc);
+
+        gbc.gridx = 3; gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        comboFormaPagamento = new JComboBox<>(DialogLancamento.FORMAS_PAGAMENTO);
+        comboFormaPagamento.setPreferredSize(new Dimension(150, 30));
+        painel.add(comboFormaPagamento, gbc);
 
         // Listener para habilitar taxa
         campoEndereco.getDocument().addDocumentListener(new DocumentListener() {
@@ -651,6 +664,9 @@ public class TelaPedido extends JPanel {
         pedido.setTotal(total);
         pedido.setDataHora(LocalDateTime.now());
 
+        String formaPagamento = (String) comboFormaPagamento.getSelectedItem();
+        pedido.setFormaPagamento("-".equals(formaPagamento) ? null : formaPagamento);
+
         dao.salvarPedido(pedido);
 
         JOptionPane.showMessageDialog(this, "✅ Pedido #" + pedido.getId() + " salvo com sucesso!");
@@ -692,6 +708,7 @@ public class TelaPedido extends JPanel {
         lancamento.setDescricao("Pedido #" + pedido.getId() + " - " + pedido.getNomeCliente());
         lancamento.setValor(pedido.getTotal());
         lancamento.setData(pedido.getDataHora().toLocalDate());
+        lancamento.setFormaPagamento(pedido.getFormaPagamento());
         lancamento.setPedidoId(pedido.getId());
 
         dao.salvarLancamento(lancamento);
@@ -729,6 +746,7 @@ public class TelaPedido extends JPanel {
         campoEndereco.setText("");
         campoTaxa.setText("");
         campoTaxa.setEnabled(false);
+        comboFormaPagamento.setSelectedIndex(0);
         itensPedido.clear();
         modelListaItens.clear();
         atualizarTotais();

@@ -6,7 +6,6 @@ import salgaderia.util.StyleConfig;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,7 +76,6 @@ public class TelaMontagemCento extends JDialog {
                 Produto produto = item.getProduto();
                 produtos.add(produto);
 
-                // Nome do produto
                 gbc.gridx = 0;
                 gbc.gridy = linha;
                 gbc.gridwidth = 1;
@@ -85,7 +83,6 @@ public class TelaMontagemCento extends JDialog {
                 JLabel labelNome = new JLabel(produto.getNomeProduto() + " (R$ " + String.format("%.2f", produto.getPrecoUnitario()) + ")");
                 painelSabores.add(labelNome, gbc);
 
-                // Spinner
                 gbc.gridx = 1;
                 gbc.gridy = linha;
                 gbc.gridwidth = 1;
@@ -160,7 +157,7 @@ public class TelaMontagemCento extends JDialog {
             int quantidade = (int) spinners.get(i).getValue();
             if (quantidade > 0) {
                 Produto produto = produtos.get(i);
-                itensSelecionados.add(new ItemPedido(produto.getNomeProduto(), quantidade, produto.getPrecoUnitario()));
+                itensSelecionados.add(new ItemPedido(produto.getNomeProduto(), quantidade));
                 total += quantidade;
                 saboresEscolhidos++;
             }
@@ -180,6 +177,8 @@ public class TelaMontagemCento extends JDialog {
             JOptionPane.showMessageDialog(this, "Você pode escolher no máximo " + cento.getMaxSabores() + " sabores!");
             return;
         }
+
+        itensSelecionados.add(0, new ItemPedido(cento.getNome(), 1, cento.getPrecoTotal()));
 
         confirmado = true;
         dispose();
