@@ -78,6 +78,12 @@ public class ReciboService {
             criarCelula(rowEndereco, 1, pedido.getEndereco(), estiloCelula);
         }
 
+        if (pedido.getFormaPagamento() != null && !pedido.getFormaPagamento().isBlank()) {
+            Row rowPagamento = sheet.createRow(linha++);
+            criarCelula(rowPagamento, 0, "Pagamento:", estiloRotulo);
+            criarCelula(rowPagamento, 1, pedido.getFormaPagamento(), estiloCelula);
+        }
+
         return linha;
     }
 
@@ -104,7 +110,7 @@ public class ReciboService {
             }
         }
 
-        linha++; // linha em branco antes dos totais
+        linha++;
 
         Row rowSubtotal = sheet.createRow(linha++);
         criarCelula(rowSubtotal, 2, "Subtotal:", estiloCelula);
