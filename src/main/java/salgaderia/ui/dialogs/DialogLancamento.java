@@ -18,7 +18,7 @@ public class DialogLancamento extends JDialog {
     private static final String[] CATEGORIAS_SAIDA = {
             "Ingredientes", "Gás", "Embalagens", "Aluguel", "Energia", "Água", "Transporte", "Manutenção", "Salários", "Outros"
     };
-    private static final String[] FORMAS_PAGAMENTO = {"-", "Dinheiro", "Pix", "Cartão de Crédito", "Cartão de Débito", "Outro"};
+    public static final String[] FORMAS_PAGAMENTO = {"-", "Dinheiro", "Pix", "Cartão de Crédito", "Cartão de Débito", "Outro"};
 
     private final LancamentoFinanceiro lancamentoExistente;
     private final tipoLancamento tipoFixo;

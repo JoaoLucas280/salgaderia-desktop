@@ -102,7 +102,7 @@ public class TelaHistoricoPedidos extends JPanel {
     private JPanel criarPainelTabela() {
         JPanel painel = new JPanel(new BorderLayout());
 
-        String[] colunas = {"ID", "Cliente", "Telefone", "Data", "Total", "Status"};
+        String[] colunas = {"ID", "Cliente", "Telefone", "Data", "Total", "Pagamento", "Status"};
         modeloTabela = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -188,6 +188,7 @@ public class TelaHistoricoPedidos extends JPanel {
                     p.getTelefone(),
                     p.getDataHora().format(FORMATO_DATA),
                     "R$ " + String.format("%.2f", p.getTotal().doubleValue()),
+                    p.getFormaPagamento() != null ? p.getFormaPagamento() : "-",
                     formatarStatus(p.getStatus())
             });
         }
