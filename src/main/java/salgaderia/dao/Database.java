@@ -3,7 +3,8 @@ package salgaderia.dao;
 import java.sql.*;
 
 public class Database {
-    private static final String URL = "jdbc:sqlite:salgaderia.db";
+    public static final String DB_FILE_NAME = "salgaderia.db";
+    private static final String URL = "jdbc:sqlite:" + DB_FILE_NAME;
     private static Connection connection = null;
 
     public static Connection getConnection() {
