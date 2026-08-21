@@ -9,6 +9,7 @@ import salgaderia.ui.dialogs.DialogAdicional;
 import salgaderia.ui.dialogs.DialogCento;
 import salgaderia.ui.dialogs.DialogCombo;
 import salgaderia.ui.dialogs.DialogUnitario;
+import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -84,14 +85,17 @@ public class TelaAdmin extends JPanel {
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton botaoNovo = new JButton("➕ Novo");
+        StyleConfig.estilizarBotao(botaoNovo);
         botaoNovo.addActionListener(e -> abrirDialogUnitario(null));
         painelBotoes.add(botaoNovo);
 
         JButton botaoEditar = new JButton("✏️ Editar");
+        StyleConfig.estilizarBotaoSecundario(botaoEditar);
         botaoEditar.addActionListener(e -> editarProduto());
         painelBotoes.add(botaoEditar);
 
         JButton botaoDeletar = new JButton("🗑️ Deletar");
+        StyleConfig.estilizarBotao(botaoDeletar, StyleConfig.COR_ERRO);
         botaoDeletar.addActionListener(e -> deletarProduto());
         painelBotoes.add(botaoDeletar);
 
@@ -178,6 +182,7 @@ public class TelaAdmin extends JPanel {
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton botaoNovo = new JButton("➕ Novo");
+        StyleConfig.estilizarBotao(botaoNovo);
         botaoNovo.addActionListener(e -> {
             DialogAdicional dialog = new DialogAdicional(parentFrame, null);
             dialog.setVisible(true);
@@ -186,6 +191,7 @@ public class TelaAdmin extends JPanel {
         painelBotoes.add(botaoNovo);
 
         JButton botaoEditar = new JButton("✏️ Editar");
+        StyleConfig.estilizarBotaoSecundario(botaoEditar);
         botaoEditar.addActionListener(e -> {
             int linha = tabelaAdicionais.getSelectedRow();
             if (linha >= 0) {
@@ -206,6 +212,7 @@ public class TelaAdmin extends JPanel {
         painelBotoes.add(botaoEditar);
 
         JButton botaoDeletar = new JButton("🗑️ Deletar");
+        StyleConfig.estilizarBotao(botaoDeletar, StyleConfig.COR_ERRO);
         botaoDeletar.addActionListener(e -> {
             int linha = tabelaAdicionais.getSelectedRow();
             if (linha >= 0) {
@@ -262,6 +269,7 @@ public class TelaAdmin extends JPanel {
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton botaoNovo = new JButton("➕ Novo Combo");
+        StyleConfig.estilizarBotao(botaoNovo);
         botaoNovo.addActionListener(e -> {
             DialogCombo dialog = new DialogCombo(parentFrame, null);
             dialog.setVisible(true);
@@ -270,6 +278,7 @@ public class TelaAdmin extends JPanel {
         painelBotoes.add(botaoNovo);
 
         JButton botaoEditar = new JButton("✏️ Editar");
+        StyleConfig.estilizarBotaoSecundario(botaoEditar);
         botaoEditar.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {
@@ -290,6 +299,7 @@ public class TelaAdmin extends JPanel {
         painelBotoes.add(botaoEditar);
 
         JButton botaoDeletar = new JButton("🗑️ Deletar");
+        StyleConfig.estilizarBotao(botaoDeletar, StyleConfig.COR_ERRO);
         botaoDeletar.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {
@@ -369,6 +379,7 @@ public class TelaAdmin extends JPanel {
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton botaoNovo = new JButton("➕ Novo Cento");
+        StyleConfig.estilizarBotao(botaoNovo);
         botaoNovo.addActionListener(e -> {
             DialogCento dialog = new DialogCento(parentFrame, null);
             dialog.setVisible(true);
@@ -377,6 +388,7 @@ public class TelaAdmin extends JPanel {
         painelBotoes.add(botaoNovo);
 
         JButton botaoEditar = new JButton("✏️ Editar");
+        StyleConfig.estilizarBotaoSecundario(botaoEditar);
         botaoEditar.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {
@@ -397,6 +409,7 @@ public class TelaAdmin extends JPanel {
         painelBotoes.add(botaoEditar);
 
         JButton botaoDeletar = new JButton("🗑️ Deletar");
+        StyleConfig.estilizarBotao(botaoDeletar, StyleConfig.COR_ERRO);
         botaoDeletar.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {

@@ -1,6 +1,7 @@
 package salgaderia.ui;
 
 import salgaderia.service.BackupService;
+import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,33 +11,38 @@ import java.nio.file.Path;
 public class TelaPrincipal extends JFrame {
 
     public TelaPrincipal() {
-        setTitle("🥧 Salgaderia Manager");
+        setTitle("🥧 Casa da Coxinha - Sistema de Gerenciamento");
         setSize(1000, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        getContentPane().setBackground(StyleConfig.COR_FUNDO);
+        aplicarIconeJanela();
 
 
         JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setBackground(StyleConfig.COR_FUNDO);
+        tabbedPane.setForeground(StyleConfig.COR_SECUNDARIA);
+        tabbedPane.setFont(StyleConfig.FONTE_NORMAL);
 
 
         TelaPedido telaPedido = new TelaPedido(this);
-        tabbedPane.addTab("📝 Pedidos", telaPedido);
+        tabbedPane.addTab("Pedidos", telaPedido);
 
 
         TelaHistoricoPedidos telaHistorico = new TelaHistoricoPedidos(this);
-        tabbedPane.addTab("📜 Histórico", telaHistorico);
+        tabbedPane.addTab("Histórico", telaHistorico);
 
 
         TelaAdmin telaAdmin = new TelaAdmin(this);
-        tabbedPane.addTab("🔧 Admin", telaAdmin);
+        tabbedPane.addTab("Admin", telaAdmin);
 
 
         TelaFinanceiro telaFinanceiro = new TelaFinanceiro(this);
-        tabbedPane.addTab("💰 Finanças", telaFinanceiro);
+        tabbedPane.addTab("Finanças", telaFinanceiro);
 
 
         TelaDashboard telaDashboard = new TelaDashboard(this);
-        tabbedPane.addTab("📊 Dashboard", telaDashboard);
+        tabbedPane.addTab("Dashboard", telaDashboard);
 
         tabbedPane.addChangeListener(e -> {
             Component selecionado = tabbedPane.getSelectedComponent();
@@ -55,13 +61,27 @@ public class TelaPrincipal extends JFrame {
 
 
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rodape.setBackground(StyleConfig.COR_FUNDO);
 
-        JButton botaoBackup = new JButton("💾 Backup do banco");
+        JButton botaoBackup = new JButton("Backup do banco");
+        StyleConfig.estilizarBotaoSecundario(botaoBackup);
         botaoBackup.addActionListener(e -> realizarBackup());
         rodape.add(botaoBackup);
 
-        rodape.add(new JLabel("v1.0 - Salgaderia Manager"));
+        JLabel labelVersao = new JLabel("v1.0 - Casa da Coxinha");
+        labelVersao.setFont(StyleConfig.FONTE_PEQUENA);
+        labelVersao.setForeground(StyleConfig.COR_SECUNDARIA);
+        rodape.add(labelVersao);
         add(rodape, BorderLayout.SOUTH);
+    }
+
+    private void aplicarIconeJanela() {
+        java.net.URL urlIcone = getClass().getResource("/icons/icone_salgaderia.png");
+        if (urlIcone != null) {
+            setIconImage(new ImageIcon(urlIcone).getImage());
+        } else {
+            System.err.println("⚠️  Ícone não encontrado em /icons/icone_salgaderia.png (classpath).");
+        }
     }
 
     private void realizarBackup() {
@@ -84,6 +104,8 @@ public class TelaPrincipal extends JFrame {
     }
 
     public static void main(String[] args) {
+        StyleConfig.aplicarTema();
+
         SwingUtilities.invokeLater(() -> {
             TelaPrincipal tela = new TelaPrincipal();
             tela.setVisible(true);

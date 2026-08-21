@@ -2,6 +2,7 @@ package salgaderia.ui.dialogs;
 
 import salgaderia.dao.DadosDAO;
 import salgaderia.model.*;
+import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -132,7 +133,7 @@ public class DialogCombo extends JDialog {
 
 
         JPanel painelItens = new JPanel(new BorderLayout());
-        painelItens.setBorder(BorderFactory.createTitledBorder("🥒 Sabores do Combo"));
+        painelItens.setBorder(StyleConfig.criarBorda("🥒 Sabores do Combo"));
 
         String[] colunasItens = {"Produto"};
         modeloTabelaItens = new DefaultTableModel(colunasItens, 0) {
@@ -152,21 +153,23 @@ public class DialogCombo extends JDialog {
 
         labelContadorSabores = new JLabel("🥒 Sabores: 0");
         labelContadorSabores.setFont(new Font("Arial", Font.BOLD, 12));
-        labelContadorSabores.setForeground(new Color(0, 100, 200));
+        labelContadorSabores.setForeground(StyleConfig.COR_PRIMARIA_ESCURA);
         painelBotoesItens.add(labelContadorSabores);
 
         JButton botaoAdicionarItem = new JButton("➕ Adicionar Sabor");
+        StyleConfig.estilizarBotaoSecundario(botaoAdicionarItem);
         botaoAdicionarItem.addActionListener(e -> adicionarItem());
         painelBotoesItens.add(botaoAdicionarItem);
 
         JButton botaoRemoverItem = new JButton("➖ Remover Sabor");
+        StyleConfig.estilizarBotao(botaoRemoverItem, StyleConfig.COR_ERRO);
         botaoRemoverItem.addActionListener(e -> removerItem());
         painelBotoesItens.add(botaoRemoverItem);
 
         painelItens.add(painelBotoesItens, BorderLayout.SOUTH);
 
         JPanel painelAdicionais = new JPanel(new BorderLayout());
-        painelAdicionais.setBorder(BorderFactory.createTitledBorder("🥤 Adicionais Elegíveis"));
+        painelAdicionais.setBorder(StyleConfig.criarBorda("🥤 Adicionais Elegíveis"));
 
         String[] colunasAdicionais = {"Adicional"};
         modeloTabelaAdicionais = new DefaultTableModel(colunasAdicionais, 0) {
@@ -186,14 +189,16 @@ public class DialogCombo extends JDialog {
 
         labelContadorAdicionais = new JLabel("🥤 Adicionais: 0");
         labelContadorAdicionais.setFont(new Font("Arial", Font.BOLD, 12));
-        labelContadorAdicionais.setForeground(new Color(150, 100, 0));
+        labelContadorAdicionais.setForeground(StyleConfig.COR_PRIMARIA_ESCURA);
         painelBotoesAdicionais.add(labelContadorAdicionais);
 
         JButton botaoAdicionarAdicional = new JButton("➕ Adicionar Adicional");
+        StyleConfig.estilizarBotaoSecundario(botaoAdicionarAdicional);
         botaoAdicionarAdicional.addActionListener(e -> adicionarAdicional());
         painelBotoesAdicionais.add(botaoAdicionarAdicional);
 
         JButton botaoRemoverAdicional = new JButton("➖ Remover Adicional");
+        StyleConfig.estilizarBotao(botaoRemoverAdicional, StyleConfig.COR_ERRO);
         botaoRemoverAdicional.addActionListener(e -> removerAdicional());
         painelBotoesAdicionais.add(botaoRemoverAdicional);
 
@@ -207,10 +212,12 @@ public class DialogCombo extends JDialog {
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         JButton botaoSalvar = new JButton("💾 Salvar");
+        StyleConfig.estilizarBotao(botaoSalvar, StyleConfig.COR_SUCESSO);
         botaoSalvar.addActionListener(e -> salvar());
         painelBotoes.add(botaoSalvar);
 
         JButton botaoCancelar = new JButton("❌ Cancelar");
+        StyleConfig.estilizarBotaoSecundario(botaoCancelar);
         botaoCancelar.addActionListener(e -> dispose());
         painelBotoes.add(botaoCancelar);
 
@@ -225,13 +232,13 @@ public class DialogCombo extends JDialog {
     private void adicionarItem() {
         System.out.println("🔵 adicionarItem() chamado");
         System.out.println("   itensCombo.size() ANTES: " + itensCombo.size());
-        
+
         DialogItemCombo dialog = new DialogItemCombo(this);
         dialog.setVisible(true);
 
         ItemCombo item = dialog.getItemCombo();
         System.out.println("   DialogItemCombo retornou: " + (item != null ? "✅ ItemCombo não-nulo" : "❌ null"));
-        
+
         if (item != null) {
             System.out.println("   Adicionando item: " + item.getProduto().getNomeProduto() + " (id=" + item.getProduto().getId() + ")");
             itensCombo.add(item);
@@ -257,13 +264,13 @@ public class DialogCombo extends JDialog {
     private void carregarTabelaItens() {
         System.out.println("📋 carregarTabelaItens() chamado");
         System.out.println("   itensCombo.size() = " + itensCombo.size());
-        
+
         modeloTabelaItens.setRowCount(0);
-        
+
         if (itensCombo.isEmpty()) {
             System.out.println("   ⚠️  AVISO: itensCombo está vazio!");
         }
-        
+
         for (ItemCombo item : itensCombo) {
             if (item.getProduto() != null) {
                 System.out.println("   ✓ Adicionando linha na tabela: " + item.getProduto().getNomeProduto());
@@ -274,7 +281,7 @@ public class DialogCombo extends JDialog {
                 System.out.println("   ⚠️  AVISO: ItemCombo sem produto!");
             }
         }
-        
+
         System.out.println("   Total de linhas na tabela: " + modeloTabelaItens.getRowCount());
     }
 
