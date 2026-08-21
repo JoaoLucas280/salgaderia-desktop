@@ -114,6 +114,7 @@ public class Database {
                 produto_nome TEXT NOT NULL,
                 quantidade INTEGER NOT NULL,
                 preco_unitario INTEGER NOT NULL,
+                tipo_item TEXT DEFAULT 'PRODUTO',
                 FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE
             )
         """;
@@ -153,6 +154,7 @@ public class Database {
     private static void migrarSchema() {
         adicionarColunaSeNaoExistir("pedidos", "status", "TEXT DEFAULT 'PENDENTE'");
         adicionarColunaSeNaoExistir("pedidos", "forma_pagamento", "TEXT");
+        adicionarColunaSeNaoExistir("pedido_itens", "tipo_item", "TEXT DEFAULT 'PRODUTO'");
     }
 
     private static void adicionarColunaSeNaoExistir(String tabela, String coluna, String definicaoTipo) {

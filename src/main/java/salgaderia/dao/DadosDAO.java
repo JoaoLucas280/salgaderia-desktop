@@ -5,6 +5,7 @@ import salgaderia.model.enums.tipoProduto;
 import salgaderia.model.enums.tipoLancamento;
 import salgaderia.model.enums.PeriodoFiltro;
 import salgaderia.model.enums.StatusPedido;
+import salgaderia.model.enums.TipoItemPedido;
 
 import java.sql.*;
 import java.math.BigDecimal;
@@ -190,7 +191,7 @@ public class DadosDAO {
     }
 
     private void salvarItensPedido(int pedidoId, List<ItemPedido> itens) {
-        String sql = "INSERT INTO pedido_itens (pedido_id, produto_nome, quantidade, preco_unitario) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO pedido_itens (pedido_id, produto_nome, quantidade, preco_unitario, tipo_item) VALUES (?, ?, ?, ?, ?)";
 
         System.out.println("📝 salvarItensPedido() chamado: pedidoId=" + pedidoId + ", itens=" + (itens != null ? itens.size() : "null"));
 
@@ -209,6 +210,8 @@ public class DadosDAO {
                 pstmt.setInt(3, item.getQuantidade());
                 int centavos = item.getPrecoUnitario().multiply(BigDecimal.valueOf(100)).intValue();
                 pstmt.setInt(4, centavos);
+                TipoItemPedido tipo = item.getTipo() != null ? item.getTipo() : TipoItemPedido.PRODUTO;
+                pstmt.setString(5, tipo.name());
                 pstmt.addBatch();
             }
 
@@ -267,7 +270,11 @@ public class DadosDAO {
         }
     }
 
-
+    /**
+     * Busca lançamentos financeiros vinculados a um pedido específico.
+     * Usado ao cancelar um pedido, para oferecer a opção de remover junto
+     * a entrada financeira gerada automaticamente por ele.
+     */
     public List<LancamentoFinanceiro> carregarLancamentosPorPedidoId(int pedidoId) {
         List<LancamentoFinanceiro> lancamentos = new ArrayList<>();
         String sql = "SELECT * FROM lancamentos WHERE pedido_id = ?";
@@ -308,7 +315,15 @@ public class DadosDAO {
                 int centavos = rs.getInt("preco_unitario");
                 BigDecimal precoUnitario = BigDecimal.valueOf(centavos).divide(BigDecimal.valueOf(100));
 
-                itens.add(new ItemPedido(nomeProduto, quantidade, precoUnitario));
+                String tipoTexto = rs.getString("tipo_item");
+                TipoItemPedido tipo;
+                try {
+                    tipo = tipoTexto != null ? TipoItemPedido.valueOf(tipoTexto) : TipoItemPedido.PRODUTO;
+                } catch (IllegalArgumentException e) {
+                    tipo = TipoItemPedido.PRODUTO;
+                }
+
+                itens.add(new ItemPedido(nomeProduto, quantidade, precoUnitario, tipo));
             }
 
             rs.close();
@@ -344,7 +359,12 @@ public class DadosDAO {
         return pedidos;
     }
 
-
+    /**
+     * Carrega pedidos cuja data_hora está entre `inicio` e `fim` (inclusive).
+     * data_hora é salva como String no formato ISO-8601 (LocalDateTime.toString()),
+     * que ordena corretamente como texto — por isso a comparação funciona direto
+     * na cláusula WHERE sem precisar converter tipo no SQLite.
+     */
     public List<Pedido> carregarPedidosPorPeriodo(LocalDateTime inicio, LocalDateTime fim) {
         List<Pedido> pedidos = new ArrayList<>();
         String sql = "SELECT * FROM pedidos WHERE data_hora >= ? AND data_hora <= ? ORDER BY data_hora DESC";
@@ -370,7 +390,14 @@ public class DadosDAO {
         return pedidos;
     }
 
-
+    /**
+     * Atalho de conveniência: calcula o intervalo de datas a partir de um
+     * PeriodoFiltro (DIARIO/SEMANAL/MENSAL), sempre relativo a "agora".
+     *
+     * DIARIO  -> desde a meia-noite de hoje
+     * SEMANAL -> últimos 7 dias (hoje + 6 dias anteriores)
+     * MENSAL  -> desde o dia 1 do mês atual
+     */
     public List<Pedido> carregarPedidosPorPeriodo(PeriodoFiltro periodo) {
         LocalDateTime fim = LocalDateTime.now();
         LocalDateTime inicio;
@@ -585,7 +612,11 @@ public class DadosDAO {
             System.out.println("   INSERT combo: " + affectedRows + " linha(s) afetada(s)");
 
             if (affectedRows > 0) {
-
+                // 🔧 CORREÇÃO: getGeneratedKeys() não é suportado por esta versão
+                // do driver sqlite-jdbc (lançava SQLFeatureNotSupportedException e
+                // interrompia o método antes de salvar itens/adicionais). Trocado
+                // por SELECT last_insert_rowid(), que é nativo do SQLite e sempre
+                // funciona na mesma conexão logo após o INSERT.
                 int comboId = (int) ultimoIdInserido(conn);
                 c.setId(comboId);
                 System.out.println("   ✅ Combo inserido com ID: " + comboId);
@@ -822,7 +853,7 @@ public class DadosDAO {
                 c.setPrecoTotal(BigDecimal.valueOf(centavos).divide(BigDecimal.valueOf(100)));
                 c.setMaxSabores(rs.getInt("max_sabores"));
 
-
+                // Carrega os itens do cento
                 c.setItens(carregarItensCento(c.getId()));
 
                 centos.add(c);
@@ -888,6 +919,8 @@ public class DadosDAO {
             pstmt.close();
 
             if (affectedRows > 0) {
+                // 🔧 CORREÇÃO: mesmo problema do salvarCombo() - getGeneratedKeys()
+                // não suportado por este driver. Usando last_insert_rowid().
                 int centoId = (int) ultimoIdInserido(conn);
                 c.setId(centoId);
                 salvarItensCento(centoId, c.getItens());

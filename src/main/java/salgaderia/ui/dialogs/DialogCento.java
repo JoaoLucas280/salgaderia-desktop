@@ -4,6 +4,7 @@ import salgaderia.dao.DadosDAO;
 import salgaderia.model.Cento;
 import salgaderia.model.ItemCombo;
 import salgaderia.model.Produto;
+import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -94,7 +95,7 @@ public class DialogCento extends JDialog {
         add(painelDados, BorderLayout.NORTH);
 
         JPanel painelTabela = new JPanel(new BorderLayout());
-        painelTabela.setBorder(BorderFactory.createTitledBorder("🥒 Sabores do Cento (100 salgados)"));
+        painelTabela.setBorder(StyleConfig.criarBorda("🥒 Sabores do Cento (100 salgados)"));
 
         String[] colunas = {"Produto"};
         modeloTabela = new DefaultTableModel(colunas, 0) {
@@ -113,10 +114,12 @@ public class DialogCento extends JDialog {
         JPanel painelBotoesTabela = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JButton botaoAdicionar = new JButton("➕ Adicionar Sabor");
+        StyleConfig.estilizarBotaoSecundario(botaoAdicionar);
         botaoAdicionar.addActionListener(e -> adicionarItem());
         painelBotoesTabela.add(botaoAdicionar);
 
         JButton botaoRemover = new JButton("➖ Remover Sabor");
+        StyleConfig.estilizarBotao(botaoRemover, StyleConfig.COR_ERRO);
         botaoRemover.addActionListener(e -> removerItem());
         painelBotoesTabela.add(botaoRemover);
 
@@ -127,10 +130,12 @@ public class DialogCento extends JDialog {
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         JButton botaoSalvar = new JButton("💾 Salvar");
+        StyleConfig.estilizarBotao(botaoSalvar, StyleConfig.COR_SUCESSO);
         botaoSalvar.addActionListener(e -> salvar());
         painelBotoes.add(botaoSalvar);
 
         JButton botaoCancelar = new JButton("❌ Cancelar");
+        StyleConfig.estilizarBotaoSecundario(botaoCancelar);
         botaoCancelar.addActionListener(e -> dispose());
         painelBotoes.add(botaoCancelar);
 

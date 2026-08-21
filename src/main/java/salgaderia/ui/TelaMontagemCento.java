@@ -1,6 +1,7 @@
 package salgaderia.ui;
 
 import salgaderia.model.*;
+import salgaderia.model.enums.TipoItemPedido;
 import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
@@ -76,6 +77,7 @@ public class TelaMontagemCento extends JDialog {
                 Produto produto = item.getProduto();
                 produtos.add(produto);
 
+                // Nome do produto
                 gbc.gridx = 0;
                 gbc.gridy = linha;
                 gbc.gridwidth = 1;
@@ -83,6 +85,7 @@ public class TelaMontagemCento extends JDialog {
                 JLabel labelNome = new JLabel(produto.getNomeProduto() + " (R$ " + String.format("%.2f", produto.getPrecoUnitario()) + ")");
                 painelSabores.add(labelNome, gbc);
 
+                // Spinner
                 gbc.gridx = 1;
                 gbc.gridy = linha;
                 gbc.gridwidth = 1;
@@ -178,7 +181,7 @@ public class TelaMontagemCento extends JDialog {
             return;
         }
 
-        itensSelecionados.add(0, new ItemPedido(cento.getNome(), 1, cento.getPrecoTotal()));
+        itensSelecionados.add(0, new ItemPedido(cento.getNome(), 1, cento.getPrecoTotal(), TipoItemPedido.PACOTE));
 
         confirmado = true;
         dispose();

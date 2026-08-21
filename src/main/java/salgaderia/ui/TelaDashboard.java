@@ -103,18 +103,22 @@ public class TelaDashboard extends JPanel {
         JPanel linhaAtalhos = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
 
         JButton botaoHoje = new JButton("Hoje");
+        StyleConfig.estilizarBotaoSecundario(botaoHoje);
         botaoHoje.addActionListener(e -> carregarPeriodo(PeriodoFiltro.DIARIO));
         linhaAtalhos.add(botaoHoje);
 
         JButton botaoSemana = new JButton("Últimos 7 dias");
+        StyleConfig.estilizarBotaoSecundario(botaoSemana);
         botaoSemana.addActionListener(e -> carregarPeriodo(PeriodoFiltro.SEMANAL));
         linhaAtalhos.add(botaoSemana);
 
         JButton botaoMes = new JButton("Este mês");
+        StyleConfig.estilizarBotao(botaoMes);
         botaoMes.addActionListener(e -> carregarPeriodo(PeriodoFiltro.MENSAL));
         linhaAtalhos.add(botaoMes);
 
         JButton botaoTodos = new JButton("Todos");
+        StyleConfig.estilizarBotaoSecundario(botaoTodos);
         botaoTodos.addActionListener(e -> carregarTodos());
         linhaAtalhos.add(botaoTodos);
 
@@ -125,15 +129,18 @@ public class TelaDashboard extends JPanel {
 
         campoDataInicio = new JTextField(10);
         campoDataInicio.setPreferredSize(new Dimension(100, 28));
+        StyleConfig.estilizarCampo(campoDataInicio);
         linhaRange.add(campoDataInicio);
 
         linhaRange.add(new JLabel("Até:"));
 
         campoDataFim = new JTextField(10);
         campoDataFim.setPreferredSize(new Dimension(100, 28));
+        StyleConfig.estilizarCampo(campoDataFim);
         linhaRange.add(campoDataFim);
 
         JButton botaoAplicarRange = new JButton("Aplicar");
+        StyleConfig.estilizarBotao(botaoAplicarRange);
         botaoAplicarRange.addActionListener(e -> aplicarRangeCustomizado());
         linhaRange.add(botaoAplicarRange);
 
@@ -318,7 +325,6 @@ public class TelaDashboard extends JPanel {
     }
 
 
-
     private void atualizarComparacaoComPeriodoAnterior() {
         if (inicioAtual == null || fimAtual == null) {
             labelComparacaoFaturamento.setText(" ");
@@ -450,7 +456,6 @@ public class TelaDashboard extends JPanel {
 
         return chart;
     }
-
 
 
     private void atualizarRanking() {

@@ -1,6 +1,7 @@
 package salgaderia.ui;
 
 import salgaderia.model.*;
+import salgaderia.model.enums.TipoItemPedido;
 import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
@@ -221,12 +222,12 @@ public class TelaMontagemCombo extends JDialog {
             return;
         }
 
-        itensSelecionados.add(0, new ItemPedido(combo.getNome(), 1, combo.getPrecoTotal()));
+        itensSelecionados.add(0, new ItemPedido(combo.getNome(), 1, combo.getPrecoTotal(), TipoItemPedido.PACOTE));
 
         for (int i = 0; i < checkBoxesAdicionais.size(); i++) {
             if (checkBoxesAdicionais.get(i).isSelected()) {
                 Adicional adicional = adicionaisElegiveis.get(i);
-                itensSelecionados.add(new ItemPedido(adicional.getNome(), 1));
+                itensSelecionados.add(new ItemPedido(adicional.getNome(), 1, TipoItemPedido.ADICIONAL));
             }
         }
 

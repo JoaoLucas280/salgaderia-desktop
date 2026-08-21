@@ -2,6 +2,7 @@ package salgaderia.ui.dialogs;
 
 import salgaderia.model.LancamentoFinanceiro;
 import salgaderia.model.enums.tipoLancamento;
+import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
 import java.awt.*;
@@ -152,10 +153,12 @@ public class DialogLancamento extends JDialog {
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         JButton botaoSalvar = new JButton("💾 Salvar");
+        StyleConfig.estilizarBotao(botaoSalvar, StyleConfig.COR_SUCESSO);
         botaoSalvar.addActionListener(e -> salvar());
         painelBotoes.add(botaoSalvar);
 
         JButton botaoCancelar = new JButton("❌ Cancelar");
+        StyleConfig.estilizarBotaoSecundario(botaoCancelar);
         botaoCancelar.addActionListener(e -> dispose());
         painelBotoes.add(botaoCancelar);
 

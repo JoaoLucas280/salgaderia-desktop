@@ -3,6 +3,7 @@ package salgaderia.ui.dialogs;
 import salgaderia.dao.DadosDAO;
 import salgaderia.model.ItemCombo;
 import salgaderia.model.Produto;
+import salgaderia.util.StyleConfig;
 
 import javax.swing.*;
 import java.awt.*;
@@ -50,10 +51,12 @@ public class DialogItemCombo extends JDialog {
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         JButton botaoSalvar = new JButton("✅ Salvar");
+        StyleConfig.estilizarBotao(botaoSalvar, StyleConfig.COR_SUCESSO);
         botaoSalvar.addActionListener(e -> salvar());
         painelBotoes.add(botaoSalvar);
 
         JButton botaoCancelar = new JButton("❌ Cancelar");
+        StyleConfig.estilizarBotaoSecundario(botaoCancelar);
         botaoCancelar.addActionListener(e -> dispose());
         painelBotoes.add(botaoCancelar);
 
@@ -84,10 +87,10 @@ public class DialogItemCombo extends JDialog {
 
     private void salvar() {
         Produto produto = (Produto) comboProdutos.getSelectedItem();
-        
+
         System.out.println("💾 DialogItemCombo.salvar() chamado");
         System.out.println("   comboProdutos.getSelectedItem() retornou: " + (produto != null ? "✅ " + produto.getNomeProduto() : "❌ null"));
-        
+
         if (produto == null) {
             System.out.println("   ❌ ERRO: Produto é null!");
             JOptionPane.showMessageDialog(this, "Selecione um sabor!");
@@ -96,7 +99,7 @@ public class DialogItemCombo extends JDialog {
 
         itemSalvo = new ItemCombo(produto);
         System.out.println("   ✅ ItemCombo criado: " + itemSalvo.getProduto().getNomeProduto());
-        
+
         salvou = true;
         dispose();
     }

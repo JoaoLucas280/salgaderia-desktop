@@ -2,6 +2,7 @@ package salgaderia.service;
 
 import salgaderia.model.ItemPedido;
 import salgaderia.model.Pedido;
+import salgaderia.model.enums.TipoItemPedido;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -43,6 +44,7 @@ public class ReciboService {
 
             sheet.setColumnWidth(0, 18 * 256);
             sheet.setColumnWidth(1, 24 * 256);
+            sheet.setColumnWidth(2, 14 * 256);
 
             configurarImpressao(sheet);
 
@@ -77,12 +79,19 @@ public class ReciboService {
         }
 
         for (ItemPedido item : pedido.getItens()) {
-            if (item.getPrecoUnitario() != null && item.getPrecoUnitario().compareTo(BigDecimal.ZERO) > 0) {
-                String valor = item.getQuantidade() > 1
-                        ? item.getQuantidade() + "x - " + formatarMoeda(item.getPrecoUnitario())
-                        : formatarMoeda(item.getPrecoUnitario());
-                linha = escreverCampo(sheet, linha, item.getNomeProduto().toUpperCase(), valor, estiloRotulo, estiloValor);
+            if (item.getTipo() != TipoItemPedido.PACOTE && item.getTipo() != TipoItemPedido.ADICIONAL) {
+                continue;
             }
+
+            boolean gratuito = item.getPrecoUnitario() == null || item.getPrecoUnitario().compareTo(BigDecimal.ZERO) == 0;
+            String precoTexto = gratuito ? "Incluso" : formatarMoeda(item.getPrecoUnitario());
+            String valor = item.getQuantidade() > 1 ? item.getQuantidade() + "x - " + precoTexto : precoTexto;
+
+            String rotulo = item.getTipo() == TipoItemPedido.ADICIONAL
+                    ? "ADICIONAL: " + item.getNomeProduto().toUpperCase()
+                    : item.getNomeProduto().toUpperCase();
+
+            linha = escreverCampo(sheet, linha, rotulo, valor, estiloRotulo, estiloValor);
         }
 
         return linha;
@@ -99,28 +108,38 @@ public class ReciboService {
     }
 
     private int escreverTabelaSabores(Sheet sheet, int linha, Pedido pedido, CellStyle estiloCabecalho, CellStyle estiloValor, CellStyle estiloRotulo) {
-        List<ItemPedido> sabores = new ArrayList<>();
+        List<ItemPedido> itensTabela = new ArrayList<>();
         if (pedido.getItens() != null) {
             for (ItemPedido item : pedido.getItens()) {
-                if (item.getPrecoUnitario() == null || item.getPrecoUnitario().compareTo(BigDecimal.ZERO) == 0) {
-                    sabores.add(item);
+                if (item.getTipo() != TipoItemPedido.PACOTE && item.getTipo() != TipoItemPedido.ADICIONAL) {
+                    itensTabela.add(item);
                 }
             }
         }
 
-        if (sabores.isEmpty()) {
+        if (itensTabela.isEmpty()) {
             return linha;
         }
 
+        boolean temItemComPreco = itensTabela.stream()
+                .anyMatch(i -> i.getPrecoUnitario() != null && i.getPrecoUnitario().compareTo(BigDecimal.ZERO) > 0);
+
         Row header = sheet.createRow(linha++);
-        criarCelula(header, 0, "SABORES", estiloCabecalho);
+        criarCelula(header, 0, temItemComPreco ? "SALGADOS" : "SABORES", estiloCabecalho);
         criarCelula(header, 1, "QTD", estiloCabecalho);
+        if (temItemComPreco) {
+            criarCelula(header, 2, "R$", estiloCabecalho);
+        }
 
         int qtdTotal = 0;
-        for (ItemPedido item : sabores) {
+        for (ItemPedido item : itensTabela) {
             Row row = sheet.createRow(linha++);
             criarCelula(row, 0, item.getNomeProduto().toUpperCase(), estiloValor);
             criarCelula(row, 1, String.valueOf(item.getQuantidade()), estiloValor);
+            if (temItemComPreco) {
+                boolean temPreco = item.getPrecoUnitario() != null && item.getPrecoUnitario().compareTo(BigDecimal.ZERO) > 0;
+                criarCelula(row, 2, temPreco ? formatarMoeda(item.getPrecoUnitario()) : "", estiloValor);
+            }
             qtdTotal += item.getQuantidade();
         }
 

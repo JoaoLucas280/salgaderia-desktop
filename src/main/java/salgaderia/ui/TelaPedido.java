@@ -3,6 +3,7 @@ package salgaderia.ui;
 import salgaderia.dao.DadosDAO;
 import salgaderia.model.*;
 import salgaderia.model.enums.tipoLancamento;
+import salgaderia.model.enums.TipoItemPedido;
 import salgaderia.service.PedidoService;
 import salgaderia.service.ReciboService;
 import salgaderia.ui.dialogs.DialogLancamento;
@@ -426,7 +427,7 @@ public class TelaPedido extends JPanel {
 
         BigDecimal subtotal = adicional.getPreco().multiply(BigDecimal.valueOf(quantidade));
 
-        ItemPedido item = new ItemPedido(adicional.getNome(), quantidade, adicional.getPreco());
+        ItemPedido item = new ItemPedido(adicional.getNome(), quantidade, adicional.getPreco(), TipoItemPedido.ADICIONAL);
         itensPedido.add(item);
         modelListaItens.addElement(
                 String.format("%dx %s - R$ %.2f",
@@ -546,7 +547,7 @@ public class TelaPedido extends JPanel {
                 return;
             }
 
-            ItemPedido itemAtualizado = new ItemPedido(item.getNomeProduto(), novaQtd, item.getPrecoUnitario());
+            ItemPedido itemAtualizado = new ItemPedido(item.getNomeProduto(), novaQtd, item.getPrecoUnitario(), item.getTipo());
             itensPedido.set(indice, itemAtualizado);
 
             BigDecimal subtotal = item.getPrecoUnitario().multiply(BigDecimal.valueOf(novaQtd));
