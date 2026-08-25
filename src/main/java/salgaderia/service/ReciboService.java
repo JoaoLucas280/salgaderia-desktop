@@ -57,7 +57,7 @@ public class ReciboService {
     private int escreverTitulo(Sheet sheet, int linha, Pedido pedido, CellStyle estilo) {
         Row row = sheet.createRow(linha);
         Cell cell = row.createCell(0);
-        cell.setCellValue("Salgaderia - Pedido #" + pedido.getId());
+        cell.setCellValue("Casa da Coxinha - Pedido #" + pedido.getId());
         cell.setCellStyle(estilo);
         sheet.addMergedRegion(new CellRangeAddress(linha, linha, 0, 1));
         return linha + 2;
